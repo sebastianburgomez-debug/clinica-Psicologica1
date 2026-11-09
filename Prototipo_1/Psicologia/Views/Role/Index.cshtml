@@ -1,0 +1,40 @@
+@model IEnumerable<Role>
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<h2 class="mb-4 text-primary">Gestión de Roles</h2>
+
+<form asp-controller="Role" asp-action="Create" method="post" class="row g-3 mb-4">
+    <div class="col-md-6">
+        <input type="text" name="name" class="form-control" placeholder="Nombre del rol" maxlength="100" required />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-success w-100">Agregar</button>
+    </div>
+</form>
+
+<table class="table table-hover table-bordered align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th style="width: 10%;">ID</th>
+            <th>Rol</th>
+            <th style="width: 20%;" class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RoleId</td>
+                <td>@item.Name</td>
+                <td class="text-center">
+                    <form asp-controller="Role" asp-action="Delete" asp-route-id="@item.RoleId" method="post"
+                          onsubmit="return confirm('¿Eliminar este rol?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
