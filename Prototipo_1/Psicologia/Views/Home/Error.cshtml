@@ -1,9 +1,0 @@
-@using System.Diagnostics
-@{
-    ViewData["Title"] = "Error";
-    var requestId = Activity.Current?.Id ?? Context.TraceIdentifier;
-}
-
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">Ocurrió un error al procesar la solicitud.</h2>
-<p><strong>ID de solicitud:</strong> <code>@requestId</code></p>
