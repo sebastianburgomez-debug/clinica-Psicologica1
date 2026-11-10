@@ -1,0 +1,38 @@
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Carpetas de compilacion
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+
+# Archivos generados
+*.exe
+*.dll
+*.obj
+*.o
+*.pdb
+*.ilk
+*.pch
+*.idb
+*.ipch
+*.log
+
+# Archivos temporales
+*.tmp
+*.cache
+*.bak
+
+# Sistema operativo Windows
+Thumbs.db
+Desktop.ini
+
+
