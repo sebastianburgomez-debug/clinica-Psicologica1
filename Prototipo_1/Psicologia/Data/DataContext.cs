@@ -10,6 +10,8 @@ public class DataContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Specialty> Specialties => Set<Specialty>();
 
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -30,5 +32,15 @@ public class DataContext : DbContext
                 new Specialty { SpecialtyId = 1, Name = "Psicología Clínica" },
                 new Specialty { SpecialtyId = 2, Name = "Neuropsicología" });
         });
+
+        modelBuilder.Entity<Usuario>(e =>
+        {
+            e.HasIndex(u => u.Name).IsUnique();
+            e.HasData(
+                new Usuario { UsuarioId = 1, Name = "Katalina gonzalez", Correo = "kata@gmail.com", Contraseña = "1234" });
+                
+        });
+
+
     }
 }

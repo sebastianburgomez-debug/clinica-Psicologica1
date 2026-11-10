@@ -41,6 +41,7 @@ app.UseAuthorization();
 // 6. Ruta por defecto: abre el CRUD de Especialidades
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Specialty}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}")
+    .WithStaticAssets();
 
 app.Run();
