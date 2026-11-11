@@ -1,0 +1,39 @@
+﻿:root {
+    --bs-primary: #1f7a70;
+    --bs-primary-rgb: 31, 122, 112;
+    --bs-link-color: #1f7a70;
+    --bs-link-hover-color: #176158;
+}
+
+.btn-primary {
+    --bs-btn-bg: #1f7a70;
+    --bs-btn-border-color: #1f7a70;
+    --bs-btn-hover-bg: #176158;
+    --bs-btn-hover-border-color: #176158;
+    --bs-btn-active-bg: #124c45;
+    --bs-btn-active-border-color: #124c45;
+    --bs-btn-disabled-bg: #1f7a70;
+    --bs-btn-disabled-border-color: #1f7a70;
+    --bs-btn-focus-shadow-rgb: 31, 122, 112;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: #5fb3a9;
+    box-shadow: 0 0 0 .25rem rgba(31, 122, 112, .25);
+}
+
+.form-check-input:checked {
+    background-color: #1f7a70;
+    border-color: #1f7a70;
+}
+
+.pagination {
+    --bs-pagination-color: #1f7a70;
+    --bs-pagination-hover-color: #176158;
+    --bs-pagination-active-bg: #1f7a70;
+    --bs-pagination-active-border-color: #1f7a70;
+    --bs-pagination-focus-color: #176158;
+    --bs-pagination-focus-box-shadow: 0 0 0 .25rem rgba(31, 122, 112, .25);
+}

@@ -1,0 +1,22 @@
+@* Antes de enviar el formulario, recoge los permisos marcados y los envía como JSON en el campo oculto PermissionIds *@
+<script>
+
+    $(document).ready(function() {
+
+        $('#btnSaveRole').click(function(event) {
+
+            const permissions = $('.permission:checked');
+
+            let permissionIds = [];
+
+            permissions.each(function() {
+
+                const permissionId = $(this).data('permission-id');
+                permissionIds.push(permissionId);
+            });
+
+            $('#permissionIds').val(JSON.stringify(permissionIds));
+        });
+    });
+
+</script>
