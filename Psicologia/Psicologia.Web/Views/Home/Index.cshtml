@@ -1,3 +1,5 @@
+@inject IAccountService _accountService
+
 @{
     ViewData["Title"] = "Inicio";
 }
@@ -14,56 +16,65 @@
 <section class="section dashboard">
     <div class="row">
 
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card sales-card">
-                <div class="card-body">
-                    <h5 class="card-title">Especialidades</h5>
+        @if (await _accountService.AccountUserIsAuthorizedAsync("specialties.show"))
+        {
+            <div class="col-xxl-4 col-md-6">
+                <div class="card info-card sales-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Especialidades</h5>
 
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-journal-medical"></i>
-                        </div>
-                        <div class="ps-3">
-                            <a asp-controller="Specialties" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
-                        </div><!-- aqui se apunta al controlador specialitiesController ejecutando index() -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card revenue-card">
-                <div class="card-body">
-                    <h5 class="card-title">Roles</h5>
-
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-person-badge"></i>
-                        </div>
-                        <div class="ps-3">
-                            <a asp-controller="Roles" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
-                        </div><!-- aqui se apunta al controlador RolesController ejecutando index()  lo cual lleva a la view roles index()-->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card customers-card">
-                <div class="card-body">
-                    <h5 class="card-title">Usuarios</h5>
-
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div class="ps-3">
-                            <a asp-controller="Users" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-journal-medical"></i>
+                            </div>
+                            <div class="ps-3">
+                                <a asp-controller="Specialties" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
+
+        @if (await _accountService.AccountUserIsAuthorizedAsync("roles.show"))
+        {
+            <div class="col-xxl-4 col-md-6">
+                <div class="card info-card revenue-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Roles</h5>
+
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div class="ps-3">
+                                <a asp-controller="Roles" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (await _accountService.AccountUserIsAuthorizedAsync("users.show"))
+        {
+            <div class="col-xxl-4 col-md-6">
+                <div class="card info-card customers-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios</h5>
+
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="ps-3">
+                                <a asp-controller="Users" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
     </div>
 </section>
