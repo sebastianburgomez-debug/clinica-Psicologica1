@@ -1,0 +1,80 @@
+@inject IAccountService _accountService
+@inject IUsersService _usersService
+
+@{
+    ViewData["Title"] = "Inicio";
+
+    var userResponse = await _usersService.GetUserByEmailAsync(User.Identity?.Name ?? string.Empty);
+    string userName = userResponse.Result?.Name ?? string.Empty;
+    string roleName = userResponse.Result?.Role?.Name ?? string.Empty;
+
+    var modules = new[]
+    {
+        (Permission: "specialties.show", Title: "Especialidades", Icon: "bi-journal-medical", Controller: "Specialties", Css: "sales-card"),
+        (Permission: "roles.show", Title: "Roles", Icon: "bi-person-badge", Controller: "Roles", Css: "revenue-card"),
+        (Permission: "users.show", Title: "Usuarios", Icon: "bi-people", Controller: "Users", Css: "customers-card")
+    };
+
+    var allowedModules = new List<(string Permission, string Title, string Icon, string Controller, string Css)>();
+
+    foreach (var item in modules)
+    {
+        if (await _accountService.AccountUserIsAuthorizedAsync(item.Permission))
+        {
+            allowedModules.Add(item);
+        }
+    }
+}
+
+<div class="pagetitle">
+    <h1>Panel de control</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active">Inicio</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Bienvenido(a), @userName</h5>
+                    <p class="mb-0">Su rol: <span class="badge bg-primary">@roleName</span></p>
+                </div>
+            </div>
+        </div>
+
+        @foreach (var item in allowedModules)
+        {
+            <div class="col-xxl-4 col-md-6">
+                <div class="card info-card @item.Css">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Title</h5>
+
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi @item.Icon"></i>
+                            </div>
+                            <div class="ps-3">
+                                <a asp-controller="@item.Controller" asp-action="Index" class="btn btn-sm btn-primary">Administrar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!allowedModules.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    Su rol todavía no tiene módulos asignados. Solicite al administrador que le asigne permisos.
+                </div>
+            </div>
+        }
+
+    </div>
+</section>
