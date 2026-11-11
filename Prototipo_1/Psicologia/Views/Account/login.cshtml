@@ -18,33 +18,58 @@
 
             <h4>Iniciar sesión</h4>
 
-            <form>
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <form asp-controller="Account"
+                  asp-action="Login"
+                  method="post">
+
+                @Html.AntiForgeryToken()
 
                 <div class="mb-3">
+
                     <label class="form-label">
                         Correo electrónico
                     </label>
 
                     <input type="email"
+                           name="correo"
                            class="form-control"
-                           placeholder="correo@ejemplo.com" />
+                           placeholder="correo@ejemplo.com"
+                           required />
+
                 </div>
 
                 <div class="mb-4">
+
                     <label class="form-label">
                         Contraseña
                     </label>
 
                     <input type="password"
+                           name="password"
                            class="form-control"
-                           placeholder="Ingresa tu contraseña" />
+                           placeholder="Ingresa tu contraseña"
+                           required />
+
                 </div>
 
                 <button type="submit"
                         class="btn btn-primary w-100">
                     Ingresar
                 </button>
-
+                <div class="text-center mt-3">
+                    <a asp-controller="Account"
+                       asp-action="Register"
+                       class="btn btn-outline-primary w-100">
+                        Crear usuario
+                    </a>
+                </div>
             </form>
 
         </div>

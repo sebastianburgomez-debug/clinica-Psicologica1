@@ -1,0 +1,127 @@
+﻿@{
+    ViewData["Title"] = "Crear usuario";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+
+                    <h3 class="text-center mb-4">
+                        Crear usuario
+                    </h3>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.Error
+                        </div>
+                    }
+
+                    @if (TempData["Mensaje"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["Mensaje"]
+                        </div>
+                    }
+
+                    <form asp-controller="Usuarios"
+                          asp-action="Create"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <!-- NOMBRE -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Nombre completo
+                            </label>
+
+                            <input type="text"
+                                   name="nombre"
+                                   class="form-control"
+                                   placeholder="Ingresa el nombre completo"
+                                   required />
+                        </div>
+
+                        <!-- CORREO -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Correo electrónico
+                            </label>
+
+                            <input type="email"
+                                   name="correo"
+                                   class="form-control"
+                                   placeholder="ejemplo@correo.com"
+                                   required />
+                        </div>
+
+                        <!-- CONTRASEÑA -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Contraseña
+                            </label>
+
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   minlength="8"
+                                   placeholder="Mínimo 8 caracteres"
+                                   required />
+                        </div>
+
+                        <!-- CONFIRMAR CONTRASEÑA -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Confirmar contraseña
+                            </label>
+
+                            <input type="password"
+                                   name="confirmarPassword"
+                                   class="form-control"
+                                   minlength="8"
+                                   placeholder="Repite la contraseña"
+                                   required />
+                        </div>
+
+                        <!-- ROL -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                Rol del usuario
+                            </label>
+
+                            <select name="roleId"
+                                    class="form-select"
+                                    asp-items="ViewBag.Roles"
+                                    required>
+
+                                <option value="">
+                                    Selecciona un rol
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <!-- BOTÓN CREAR -->
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            Crear usuario
+                        </button>
+
+                        <a asp-controller="Home"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary w-100 mt-2">
+                            Volver al panel principal
+                        </a>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

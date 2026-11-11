@@ -1,0 +1,39 @@
+﻿@if (User.Identity != null &&
+     User.Identity.IsAuthenticated &&
+     User.IsInRole("Administrador"))
+{
+    <div class="text-center mt-4">
+        <a asp-controller="Usuarios"
+           asp-action="Create"
+           class="btn btn-primary">
+            <i class="bi bi-person-plus"></i>
+            Crear usuario
+        </a>
+    </div>
+}
+
+<div class="alert alert-info mt-3">
+    <h5>Diagnóstico de usuario</h5>
+
+    <p>
+        <strong>Autenticado:</strong>
+        @User.Identity?.IsAuthenticated
+    </p>
+
+    <p>
+        <strong>Nombre:</strong>
+        @User.Identity?.Name
+    </p>
+
+    <p>
+        <strong>Rol recibido:</strong>
+        @string.Join(", ", User.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value))
+    </p>
+
+    <p>
+        <strong>¿Es administrador?</strong>
+        @User.IsInRole("Administrador")
+    </p>
+</div>

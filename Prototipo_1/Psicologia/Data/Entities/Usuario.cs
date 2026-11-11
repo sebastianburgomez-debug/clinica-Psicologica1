@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace Psicologia.Data.Entities
 {
@@ -6,15 +7,24 @@ namespace Psicologia.Data.Entities
     {
         public int UsuarioId { get; set; }
 
-        [Required, StringLength(100)]
+        [Required]
+        [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
+        [Required]
+        [EmailAddress]
         public string Correo { get; set; } = string.Empty;
 
-        public string Contraseña { get; set; } = string.Empty;
+        // Contraseña almacenada mediante hash
+        public string? PasswordHash { get; set; }
 
-        public string idRole { get; set; } = string.Empty;
+        public int RoleId { get; set; }
 
+        // Relación con Role
+        public Role Role { get; set; } = null!;
+
+        // Relación con UsuarioEspecialidad
+        public ICollection<UsuarioEspecialidad> UsuarioEspecialidades
+        { get; set; } = new List<UsuarioEspecialidad>();
     }
 }
-
