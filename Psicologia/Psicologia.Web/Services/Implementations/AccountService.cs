@@ -17,18 +17,21 @@ namespace Psicologia.Web.Services.Implementations
         private readonly IUsersService _usersService;
         private readonly IHttpContextAccessor _httpContextAccesor;
         private readonly DataContext _context;
+        private readonly IAuditService _auditService;
 
         public AccountService(UserManager<User> userManager,
                               SignInManager<User> signInManager,
                               IUsersService usersService,
                               IHttpContextAccessor httpContextAccesor,
-                              DataContext context)
+                              DataContext context,
+                              IAuditService auditService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _usersService = usersService;
             _httpContextAccesor = httpContextAccesor;
             _context = context;
+            _auditService = auditService;
         }
 
         public bool AccountUserIsAuthenticated()
@@ -87,7 +90,31 @@ namespace Psicologia.Web.Services.Implementations
 
         public async Task<Response<SignInResult>> LoginAsync(LoginDTO dto)
         {
+            User? user = await _userManager.FindByEmailAsync(dto.Email);
+
+            // Cuenta desactivada (borrado lógico): no se permite el ingreso
+            if (user is not null && !user.IsActive)
+            {
+                bool validPassword = await _userManager.CheckPasswordAsync(user, dto.Password);
+
+                await _auditService.LogAsync(AuditActions.LOGIN_FAILED, "Cuenta", user.Id, "Intento de ingreso con una cuenta desactivada", dto.Email);
+
+                return new Response<SignInResult>
+                {
+                    Result = SignInResult.NotAllowed,
+                    IsSuccess = false,
+                    // Solo se revela que la cuenta está desactivada si la contraseña es correcta
+                    Message = validPassword ? "Su cuenta está desactivada. Comuníquese con el administrador." : null
+                };
+            }
+
             SignInResult result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+
+            await _auditService.LogAsync(result.Succeeded ? AuditActions.LOGIN : AuditActions.LOGIN_FAILED,
+                                         "Cuenta",
+                                         user?.Id,
+                                         result.Succeeded ? "Inicio de sesión exitoso" : "Credenciales inválidas",
+                                         dto.Email);
 
             return new Response<SignInResult>
             {
@@ -98,7 +125,11 @@ namespace Psicologia.Web.Services.Implementations
 
         public async Task LogoutAsync()
         {
+            string? userName = _httpContextAccesor.HttpContext?.User?.Identity?.Name;
+
             await _signInManager.SignOutAsync();
+
+            await _auditService.LogAsync(AuditActions.LOGOUT, "Cuenta", null, "Cierre de sesión", userName);
         }
 
         public async Task<Response<AccountUserDTO>> UpdateAccountUserAsync(AccountUserDTO dto)
@@ -135,7 +166,7 @@ namespace Psicologia.Web.Services.Implementations
             }
         }
 
-        private async Task<User?> GetAccountUserAsync()
+        public async Task<User?> GetAccountUserAsync()
         {
             ClaimsPrincipal? claimUser = _httpContextAccesor.HttpContext?.User;
 
@@ -152,7 +183,28 @@ namespace Psicologia.Web.Services.Implementations
                 return null;
             }
 
+            // Una cuenta desactivada con una cookie vigente no tiene acceso a nada
+            if (!response.Result.IsActive)
+            {
+                return null;
+            }
+
             return response.Result;
+        }
+
+        public async Task<DoctorProfile?> GetAccountDoctorProfileAsync()
+        {
+            User? user = await GetAccountUserAsync();
+
+            if (user is null)
+            {
+                return null;
+            }
+
+            return await _context.DoctorProfiles.Include(d => d.Specialty)
+                                                .Include(d => d.User)
+                                                .AsNoTracking()
+                                                .FirstOrDefaultAsync(d => d.UserId == user.Id);
         }
     }
 }

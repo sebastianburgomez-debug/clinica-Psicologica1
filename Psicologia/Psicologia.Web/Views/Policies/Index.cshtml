@@ -1,0 +1,180 @@
+@model PoliciesDTO
+@using System.Globalization
+@inject IAccountService _accountService
+
+@{
+    ViewData["Title"] = "Políticas";
+
+    bool canUpdate = await _accountService.AccountUserIsAuthorizedAsync("policies.update");
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Panel de Dirección</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="row">
+
+        @* Horario de atención *@
+        <div class="col-lg-6">
+            <div class="card">
+
+                <div class="card-header">
+                    <h3 class="m-0 font-weight-bold text-primary">Horario de atención</h3>
+                </div>
+
+                <div class="card-body mt-3">
+
+                    <p class="small text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Define los días y horas en que la clínica atiende. La disponibilidad de cada doctor debe estar dentro de este horario.
+                    </p>
+
+                    <form asp-action="UpdateBusinessHours" method="POST">
+
+                        <fieldset disabled="@(!canUpdate)">
+
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th class="text-center" style="width: 90px;">Abierto</th>
+                                    <th>Apertura</th>
+                                    <th>Cierre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.BusinessHours.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" asp-for="BusinessHours[i].Id" />
+                                            <input type="hidden" asp-for="BusinessHours[i].DayOfWeek" />
+                                            @Model.BusinessHours[i].DayOfWeek.ToSpanish()
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check form-switch d-inline-block">
+                                                <input asp-for="BusinessHours[i].IsOpen" class="form-check-input" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input asp-for="BusinessHours[i].OpenTime" type="time" asp-format="{0:HH:mm}" class="form-control form-control-sm" />
+                                        </td>
+                                        <td>
+                                            <input asp-for="BusinessHours[i].CloseTime" type="time" asp-format="{0:HH:mm}" class="form-control form-control-sm" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        </fieldset>
+
+                        @if (canUpdate)
+                        {
+                            <div class="text-center">
+                                <button class="btn btn-primary" type="submit">Guardar horario</button>
+                            </div>
+                        }
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        @* Tarifas de referencia *@
+        <div class="col-lg-6">
+            <div class="card">
+
+                <div class="card-header">
+                    <h3 class="m-0 font-weight-bold text-primary">Tarifas de referencia</h3>
+                </div>
+
+                <div class="card-body mt-3">
+
+                    <div class="alert alert-info small py-2">
+                        <i class="bi bi-info-circle"></i>
+                        Valores <strong>meramente informativos</strong> por servicio. No se utilizan para facturar, liquidar ni calcular comisiones.
+                    </div>
+
+                    <form asp-action="UpdateReferenceRates" method="POST">
+
+                        <fieldset disabled="@(!canUpdate)">
+
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Servicio</th>
+                                    <th class="text-center">Duración</th>
+                                    <th style="width: 170px;">Tarifa ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.ReferenceRates.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            No hay servicios registrados.
+                                            <a asp-controller="ClinicalServices" asp-action="Index">Configurar servicios</a>
+                                        </td>
+                                    </tr>
+                                }
+
+                                @for (int i = 0; i < Model.ReferenceRates.Count; i++)
+                                {
+                                    ReferenceRateDTO rate = Model.ReferenceRates[i];
+
+                                    <tr class="@(rate.IsActive ? "" : "table-secondary")">
+                                        <td>
+                                            <input type="hidden" name="ReferenceRates[@i].ClinicalServiceId" value="@rate.ClinicalServiceId" />
+                                            @rate.ServiceName
+                                            @if (!rate.IsActive)
+                                            {
+                                                <span class="badge bg-secondary ms-1">Inactivo</span>
+                                            }
+                                            <br />
+                                            <small class="text-muted">@(rate.SpecialtyName ?? "General")</small>
+                                        </td>
+                                        <td class="text-center">@rate.DurationMinutes min</td>
+                                        <td>
+                                            @* Valor sin decimales y en formato invariante para que el input numérico lo acepte en cualquier cultura *@
+                                            <input type="number"
+                                                   name="ReferenceRates[@i].ReferenceRate"
+                                                   value="@rate.ReferenceRate.ToString("0", CultureInfo.InvariantCulture)"
+                                                   min="0"
+                                                   step="1"
+                                                   class="form-control form-control-sm text-end"
+                                                   />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        </fieldset>
+
+                        @if (canUpdate && Model.ReferenceRates.Any())
+                        {
+                            <div class="text-center">
+                                <button class="btn btn-primary" type="submit">Guardar tarifas</button>
+                            </div>
+                        }
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>

@@ -15,12 +15,14 @@ namespace Psicologia.Web.Services.Implementations
         private readonly UserManager<User> _userManager;
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IAuditService _auditService;
 
-        public UsersService(UserManager<User> userManager, DataContext context, IMapper mapper)
+        public UsersService(UserManager<User> userManager, DataContext context, IMapper mapper, IAuditService auditService)
         {
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
+            _auditService = auditService;
         }
 
         public async Task<Response<IdentityResult>> AddUserAsync(User user, string password)
@@ -69,6 +71,8 @@ namespace Psicologia.Web.Services.Implementations
 
                 UserDTO userDto = _mapper.Map<UserDTO>(user);
 
+                await _auditService.LogAsync(AuditActions.CREATE, "Usuario", user.Id, $"Se creó el usuario '{user.Name}' ({user.Email})");
+
                 return Response<UserDTO>.Success(userDto, "Usuario creado con éxito");
             }
             catch (Exception ex)
@@ -88,12 +92,27 @@ namespace Psicologia.Web.Services.Implementations
                     return Response.Failure($"No existe usuario con id: '{id}'");
                 }
 
+                // Un usuario con información clínica o profesional asociada no se elimina físicamente:
+                // debe desactivarse (borrado lógico) desde el módulo de Personal.
+                bool hasRelatedData = await _context.DoctorProfiles.AnyAsync(d => d.UserId == user.Id)
+                                      || await _context.Appointments.AnyAsync(a => a.PatientId == user.Id)
+                                      || await _context.ClinicalRecords.AnyAsync(r => r.PatientId == user.Id);
+
+                if (hasRelatedData)
+                {
+                    return Response.Failure("El usuario tiene información clínica o profesional asociada. Desactívelo en lugar de eliminarlo.");
+                }
+
+                string description = $"Se eliminó el usuario '{user.Name}' ({user.Email})";
+
                 IdentityResult result = await _userManager.DeleteAsync(user);
 
                 if (!result.Succeeded)
                 {
                     return Response.Failure("No se pudo eliminar el usuario", result.Errors.Select(e => e.Description).ToList());
                 }
+
+                await _auditService.LogAsync(AuditActions.DELETE, "Usuario", id.ToString(), description);
 
                 return Response.Success("Usuario eliminado con éxito");
             }
@@ -214,12 +233,17 @@ namespace Psicologia.Web.Services.Implementations
                 }
 
                 User user = response.Result;
+                Guid previousRoleId = user.RoleId;
+
                 user.Name = dto.Name.Trim();
                 user.RoleId = dto.RoleId == Guid.Empty ? user.RoleId : dto.RoleId;
 
                 _context.Users.Update(user);
 
                 await _context.SaveChangesAsync();
+
+                string roleChange = previousRoleId != user.RoleId ? " (cambio de rol)" : string.Empty;
+                await _auditService.LogAsync(AuditActions.UPDATE, "Usuario", user.Id, $"Se actualizó el usuario '{user.Name}' ({user.Email}){roleChange}");
 
                 UserDTO userDto = _mapper.Map<UserDTO>(user);
 

@@ -1,0 +1,132 @@
+@model CreateStaffDTO
+
+@{
+    ViewData["Title"] = "Nuevo Personal";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Personal</a></li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="POST" class="row g-3 mt-2">
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <select asp-for="StaffType" asp-items="Html.GetEnumSelectList<StaffType>()" class="form-select" id="staffType"></select>
+                        <label asp-for="StaffType"></label>
+                        <span asp-validation-for="StaffType" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Name" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Name)" />
+                        <label asp-for="Name"></label>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Email)" />
+                        <label asp-for="Email"></label>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Password" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Password)" />
+                        <label asp-for="Password"></label>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+
+                @* Datos profesionales (solo doctores) *@
+                <div class="col-md-6 doctor-field">
+                    <div class="form-floating">
+                        <select asp-for="SpecialtyId" asp-items="Model.Specialties" class="form-select">
+                            <option value="">-- Seleccione una especialidad --</option>
+                        </select>
+                        <label asp-for="SpecialtyId"></label>
+                        <span asp-validation-for="SpecialtyId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6 doctor-field">
+                    <div class="form-floating">
+                        <input asp-for="ProfessionalLicense" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.ProfessionalLicense)" />
+                        <label asp-for="ProfessionalLicense"></label>
+                        <span asp-validation-for="ProfessionalLicense" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12 doctor-field">
+                    <div class="form-floating">
+                        <textarea asp-for="Biography" class="form-control" style="height: 100px" placeholder="@Html.DisplayNameFor(dto => dto.Biography)"></textarea>
+                        <label asp-for="Biography"></label>
+                        <span asp-validation-for="Biography" class="text-danger"></span>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Los doctores quedan pendientes de aprobación por la Dirección, salvo que quien los registra tenga permiso para aprobar.
+                    </small>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        // Muestra los campos profesionales solo cuando el tipo de cuenta es Doctor (valor 0)
+        function toggleDoctorFields() {
+            const isDoctor = $('#staffType').val() === '@((int)StaffType.Doctor)';
+            $('.doctor-field').toggle(isDoctor);
+        }
+
+        $(document).ready(function() {
+            toggleDoctorFields();
+            $('#staffType').change(toggleDoctorFields);
+        });
+
+    </script>
+
+}

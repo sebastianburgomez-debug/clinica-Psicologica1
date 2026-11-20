@@ -11,5 +11,6 @@ namespace Psicologia.Web.Services.Abstractions
         public Task<Response<SpecialtyDTO>> GetOneAsync(Guid id);
         public Task<Response<PaginationResponse<SpecialtyDTO>>> GetPaginationAsync(PaginationRequest request);
         public Task<Response<SpecialtyDTO>> UpdateAsync(UpdateSpecialtyDTO dto);
+        public Task<Response> ToggleAsync(ToggleSpecialtyStatusDTO dto);
     }
 }

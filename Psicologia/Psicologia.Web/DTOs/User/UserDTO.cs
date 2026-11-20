@@ -24,5 +24,8 @@ namespace Psicologia.Web.DTOs.User
         public Data.Entities.Role? Role { get; set; }
 
         public IEnumerable<SelectListItem>? Roles { get; set; }
+
+        [Display(Name = "Activo")]
+        public bool IsActive { get; set; }
     }
 }

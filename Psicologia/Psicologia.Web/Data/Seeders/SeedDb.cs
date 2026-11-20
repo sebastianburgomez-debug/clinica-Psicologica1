@@ -25,6 +25,9 @@ namespace Psicologia.Web.Data.Seeders
             await new SpecialtiesSeeder(_context).SeedAsync();
             await new PermissionsSeeder(_context).SeedAsync();
             await new AccountSeeder(_usersService, _context, _accountService).SeedAsync();
+
+            // Panel de Dirección, Atención Clínica y Administración del Sistema
+            await new ClinicalModulesSeeder(_context, _usersService, _accountService).SeedAsync();
         }
     }
 }

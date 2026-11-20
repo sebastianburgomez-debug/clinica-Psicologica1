@@ -79,7 +79,8 @@ namespace Psicologia.Web.Controllers
             UpdateSpecialtyDTO dto = new UpdateSpecialtyDTO
             {
                 Id = response.Result.Id,
-                Name = response.Result.Name
+                Name = response.Result.Name,
+                Description = response.Result.Description
             };
 
             return View(dto);
@@ -114,6 +115,25 @@ namespace Psicologia.Web.Controllers
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             Response response = await _service.DeleteAsync(id);
+
+            if (!response.IsSuccess)
+            {
+                _notyfService.Error(response.Message);
+            }
+            else
+            {
+                _notyfService.Success(response.Message);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [CustomAuthorize(permissionCode: "specialties.update")]
+        public async Task<IActionResult> Toggle([FromForm] ToggleSpecialtyStatusDTO dto)
+        {
+            Response response = await _service.ToggleAsync(dto);
 
             if (!response.IsSuccess)
             {

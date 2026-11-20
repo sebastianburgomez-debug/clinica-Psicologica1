@@ -19,6 +19,7 @@ namespace Psicologia.Web.Data.Seeders
                 new Role { Id = Guid.NewGuid(), Name = "Administrador" },
                 new Role { Id = Guid.NewGuid(), Name = "Doctor" },
                 new Role { Id = Guid.NewGuid(), Name = "Paciente" },
+                new Role { Id = Guid.NewGuid(), Name = "Secretaria" },
             };
 
             foreach (Role role in roles)

@@ -13,5 +13,11 @@ namespace Psicologia.Web.Data.Entities
         public required Guid RoleId { get; set; }
 
         public Role? Role { get; set; }
+
+        // Borrado lógico: un usuario inactivo no puede iniciar sesión ni usar el sistema
+        public bool IsActive { get; set; } = true;
+
+        // Solo existe cuando el usuario es un doctor
+        public DoctorProfile? DoctorProfile { get; set; }
     }
 }

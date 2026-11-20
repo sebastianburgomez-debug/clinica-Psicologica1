@@ -1,0 +1,230 @@
+@model DoctorPanelDTO
+
+@{
+    ViewData["Title"] = "Panel del Doctor";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Atención Clínica</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+        <div class="card-body pt-3">
+            <form asp-action="Index" method="GET" class="row g-2 align-items-end">
+
+                @if (Model.CanSelectDoctor)
+                {
+                    <div class="col-md-4">
+                        <label for="doctorId" class="form-label small text-muted">Doctor</label>
+                        <select id="doctorId" name="doctorId" class="form-select">
+                            @if (Model.Doctors is not null)
+                            {
+                                foreach (var doctor in Model.Doctors)
+                                {
+                                    <option value="@doctor.Value" selected="@(doctor.Value == Model.DoctorProfileId?.ToString())">@doctor.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div class="col-md-3">
+                    <label for="from" class="form-label small text-muted">Desde</label>
+                    <input type="date" id="from" name="from" class="form-control" value="@Model.From.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="to" class="form-label small text-muted">Hasta</label>
+                    <input type="date" id="to" name="to" class="form-control" value="@Model.To.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-auto">
+                    <button class="btn btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    @if (Model.DoctorProfileId is null)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay doctores registrados.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body pt-3 d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h5 class="m-0"><i class="bi bi-person-vcard text-primary"></i> @Model.DoctorName</h5>
+                    <small class="text-muted">@Model.SpecialtyName · Tarjeta profesional @Model.ProfessionalLicense</small>
+                </div>
+                @if (Model.Status is not null)
+                {
+                    <span class="badge @Model.Status.Value.GetBadgeClass() fs-6">@Model.Status.Value.GetDisplayName()</span>
+                }
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-xxl-3 col-md-6">
+                <div class="card info-card sales-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Atenciones <span>| Periodo</span></h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-check2-circle"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h6>@Model.Attended</h6>
+                                <span class="text-muted small pt-2">de @Model.TotalAppointments citas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-3 col-md-6">
+                <div class="card info-card revenue-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Pacientes <span>| Atendidos</span></h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h6>@Model.PatientsAttended</h6>
+                                <span class="text-muted small pt-2">@Model.NotesWritten nota(s) registradas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-3 col-md-6">
+                <div class="card info-card customers-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Ocupación <span>| Periodo</span></h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h6>@Model.OccupancyPercent.ToString("0.#")%</h6>
+                                <span class="text-muted small pt-2">@(Model.WeeklyAvailableMinutes / 60) h disponibles por semana</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-3 col-md-6">
+                <div class="card info-card sales-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Diagnósticos <span>| Vigentes</span></h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="bi bi-clipboard2-pulse"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h6>@Model.ActiveDiagnoses</h6>
+                                <span class="text-muted small pt-2">presuntivos o confirmados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            @* Servicios y tarifas de referencia *@
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="m-0 font-weight-bold text-primary">Servicios y tarifas de referencia</h3>
+                    </div>
+                    <div class="card-body mt-3">
+
+                        <div class="alert alert-info small py-2">
+                            <i class="bi bi-info-circle"></i>
+                            Resumen <strong>meramente informativo</strong>. Las tarifas son valores de referencia definidos por la Dirección;
+                            este panel no realiza liquidaciones ni cálculo de comisiones.
+                        </div>
+
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Servicio</th>
+                                    <th class="text-center">Duración</th>
+                                    <th class="text-end">Tarifa de referencia</th>
+                                    <th class="text-center">Atenciones (periodo)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Services.Any())
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No hay servicios activos para la especialidad.</td>
+                                    </tr>
+                                }
+
+                                @foreach (DoctorServiceSummaryDTO item in Model.Services)
+                                {
+                                    <tr>
+                                        <td>@item.ServiceName</td>
+                                        <td class="text-center">@item.DurationMinutes min</td>
+                                        <td class="text-end">$ @item.ReferenceRate.ToString("N0")</td>
+                                        <td class="text-center">@item.AttendedInRange</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex flex-wrap gap-3 small text-muted">
+                            <span><span class="badge bg-primary">@Model.Scheduled</span> programadas</span>
+                            <span><span class="badge bg-success">@Model.Attended</span> atendidas</span>
+                            <span><span class="badge bg-secondary">@Model.Cancelled</span> canceladas</span>
+                            <span><span class="badge bg-danger">@Model.NoShow</span> inasistencias</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Próximas citas *@
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Próximas citas</h5>
+                        <ul class="list-group list-group-flush">
+                            @if (!Model.UpcomingAppointments.Any())
+                            {
+                                <li class="list-group-item text-muted">No hay citas programadas.</li>
+                            }
+                            @foreach (AppointmentDTO item in Model.UpcomingAppointments)
+                            {
+                                <li class="list-group-item">
+                                    <strong>@item.StartsAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                                    <span class="ms-1">@item.PatientName</span><br />
+                                    <small class="text-muted">@item.ServiceName</small>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+
+</section>

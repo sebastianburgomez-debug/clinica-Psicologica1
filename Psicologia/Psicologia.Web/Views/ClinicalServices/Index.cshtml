@@ -1,0 +1,195 @@
+@model PaginationResponse<ClinicalServiceDTO>
+@inject IAccountService _accountService
+
+@{
+    ViewData["Title"] = "Servicios";
+
+    bool canUpdate = await _accountService.AccountUserIsAuthorizedAsync("services.update");
+    bool canDelete = await _accountService.AccountUserIsAuthorizedAsync("services.delete");
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Administración del Sistema</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">Catálogo de servicios psicológicos</h3>
+
+                @if (await _accountService.AccountUserIsAuthorizedAsync("services.create"))
+                {
+                    <div class="col-md-1">
+                        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i></a>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="card-body mt-3">
+
+            <form asp-action="Index" class="navbar-search" method="GET">
+
+                <input type="hidden" name="Page" value="1" />
+
+                <div class="row mt-3">
+
+                    <div class="col-md-auto">
+                        <select asp-for="RecordsPerPage" class="form-select bg-light border-0 small">
+                            <option value="5" selected="@(Model.RecordsPerPage == 5)">5</option>
+                            <option value="10" selected="@(Model.RecordsPerPage == 10)">10</option>
+                            <option value="15" selected="@(Model.RecordsPerPage == 15)">15</option>
+                            <option value="30" selected="@(Model.RecordsPerPage == 30)">30</option>
+                            <option value="50" selected="@(Model.RecordsPerPage == 50)">50</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-10">
+                        <div class="input-group mb-3">
+                            <input type="text"
+                                   class="form-control bg-light border-0 small"
+                                   placeholder="Buscar por servicio o especialidad..."
+                                   aria-label="search"
+                                   asp-for="Filter" />
+
+                            <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+
+            <table class="table table-bordered align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Especialidad</th>
+                        <th class="text-center">Duración</th>
+                        <th class="text-end">Tarifa de referencia</th>
+                        <th>Estado</th>
+                        <th style="width: 160px;"></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Model.List.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No hay registros para mostrar.</td>
+                        </tr>
+                    }
+
+                    @foreach (ClinicalServiceDTO item in Model.List)
+                    {
+                        <tr class="@(item.IsActive ? "" : "table-secondary")">
+                            <td>
+                                @item.Name
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <small class="d-block text-muted">@item.Description</small>
+                                }
+                            </td>
+                            <td>@(item.SpecialtyName ?? "General")</td>
+                            <td class="text-center">@item.DurationMinutes min</td>
+                            <td class="text-end">$ @item.ReferenceRate.ToString("N0")</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-primary">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td>
+                                @if (canUpdate)
+                                {
+                                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+
+                                    <form asp-action="Toggle" method="POST" style="display: contents;">
+                                        <input type="hidden" name="ClinicalServiceId" value="@item.Id" />
+                                        <input type="hidden" name="Deactivate" value="@(item.IsActive ? "true" : "false")" />
+
+                                        <button class="btn btn-sm @(item.IsActive ? "btn-info" : "btn-secondary")" title="@(item.IsActive ? "Desactivar" : "Activar")">
+                                            <i class="bi @(item.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                @if (canDelete)
+                                {
+                                    <form asp-action="Delete" method="POST" style="display: contents;" asp-route-id="@item.Id">
+                                        <button type="submit" class="btn btn-sm btn-danger btnDelete">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+            <p class="small text-muted mb-2">
+                <i class="bi bi-info-circle"></i> Las tarifas son valores de referencia meramente informativos.
+            </p>
+
+            @await Html.PartialAsync("_PaginationComponent", Model)
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function() {
+
+            $('.btnDelete').click(function(event) {
+
+                event.preventDefault();
+
+                Swal.fire({
+                    icon: 'question',
+                    title: '¿Desea eliminar el servicio?',
+                    text: "¡No podrás revertir esto!",
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        const form = $(this).closest('form');
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+    </script>
+
+}

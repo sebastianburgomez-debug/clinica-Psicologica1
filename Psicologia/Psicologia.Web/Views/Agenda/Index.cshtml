@@ -1,0 +1,298 @@
+@model AgendaDTO
+@inject IAccountService _accountService
+
+@{
+    ViewData["Title"] = "Agenda";
+
+    bool canManage = await _accountService.AccountUserIsAuthorizedAsync("agenda.manage");
+    bool canCreateAppointments = await _accountService.AccountUserIsAuthorizedAsync("appointments.create");
+
+    DateTime weekEnd = Model.WeekStart.AddDays(6);
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Atención Clínica</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+        <div class="card-body pt-3">
+            <div class="row g-2 align-items-center">
+
+                <div class="col-md-6">
+                    @if (Model.CanSelectDoctor)
+                    {
+                        <form asp-action="Index" method="GET" class="d-flex gap-2">
+                            <select name="doctorId" class="form-select" onchange="this.form.submit()">
+                                @if (Model.Doctors is null || !Model.Doctors.Any())
+                                {
+                                    <option value="">-- No hay doctores registrados --</option>
+                                }
+                                else
+                                {
+                                    foreach (var doctor in Model.Doctors)
+                                    {
+                                        <option value="@doctor.Value" selected="@(doctor.Value == Model.DoctorProfileId?.ToString())">@doctor.Text</option>
+                                    }
+                                }
+                            </select>
+                            <input type="hidden" name="week" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
+                        </form>
+                    }
+                    else
+                    {
+                        <h5 class="m-0">
+                            <i class="bi bi-person-vcard text-primary"></i>
+                            @Model.DoctorName <small class="text-muted">· @Model.SpecialtyName</small>
+                        </h5>
+                    }
+                </div>
+
+                <div class="col-md-6 text-md-end">
+                    <a class="btn btn-outline-primary btn-sm" asp-action="Index" asp-route-doctorId="@Model.DoctorProfileId" asp-route-week="@Model.WeekStart.AddDays(-7).ToString("yyyy-MM-dd")">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    <span class="mx-2 fw-semibold">@Model.WeekStart.ToString("dd/MM/yyyy") - @weekEnd.ToString("dd/MM/yyyy")</span>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="Index" asp-route-doctorId="@Model.DoctorProfileId" asp-route-week="@Model.WeekStart.AddDays(7).ToString("yyyy-MM-dd")">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm ms-1" asp-action="Index" asp-route-doctorId="@Model.DoctorProfileId">Hoy</a>
+
+                    @if (canCreateAppointments && Model.DoctorProfileId is not null && Model.DoctorStatus == ApprovalStatus.Approved)
+                    {
+                        <a class="btn btn-primary btn-sm ms-1" asp-controller="Appointments" asp-action="Create" asp-route-doctorId="@Model.DoctorProfileId">
+                            <i class="bi bi-plus-circle"></i> Agendar cita
+                        </a>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @if (Model.DoctorProfileId is null)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Aún no hay doctores registrados. Créelos desde <strong>Administración del Sistema &gt; Personal</strong>.
+        </div>
+    }
+    else
+    {
+        if (Model.DoctorStatus != ApprovalStatus.Approved)
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                El perfil del doctor está <strong>@Model.DoctorStatus?.GetDisplayName().ToLower()</strong>.
+                Puede configurar la disponibilidad, pero no se le podrán agendar citas hasta que la Dirección lo apruebe.
+            </div>
+        }
+
+        @* Vista semanal *@
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <h3 class="m-0 font-weight-bold text-primary col-md-8">Semana</h3>
+                    <div class="col-md-4 text-md-end small text-muted pt-1">
+                        Disponibilidad semanal: <strong>@(Model.WeeklyAvailableMinutes / 60) h @(Model.WeeklyAvailableMinutes % 60) min</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body mt-3">
+                <div class="row g-2">
+                    @for (int d = 0; d < 7; d++)
+                    {
+                        DateTime date = Model.WeekStart.AddDays(d);
+                        BusinessHourDTO? hour = Model.BusinessHours.FirstOrDefault(b => b.DayOfWeek == date.DayOfWeek);
+                        List<AvailabilityDTO> blocks = Model.Availabilities.Where(a => a.DayOfWeek == date.DayOfWeek).ToList();
+                        List<AppointmentDTO> dayAppointments = Model.WeekAppointments.Where(a => a.StartsAt.Date == date).ToList();
+                        bool isToday = date == DateTime.Today;
+
+                        <div class="col-12 col-md">
+                            <div class="border rounded p-2 h-100 @(isToday ? "border-primary" : "") @(hour is null || !hour.IsOpen ? "bg-light" : "")">
+                                <div class="fw-bold @(isToday ? "text-primary" : "")">@date.DayOfWeek.ToSpanish()</div>
+                                <div class="small text-muted mb-2">@date.ToString("dd/MM")</div>
+
+                                @if (hour is null || !hour.IsOpen)
+                                {
+                                    <div class="small text-muted fst-italic">Clínica cerrada</div>
+                                }
+
+                                @foreach (AvailabilityDTO block in blocks)
+                                {
+                                    <div class="badge bg-light text-success border border-success w-100 mb-1">
+                                        @block.StartTime.ToString("HH:mm") - @block.EndTime.ToString("HH:mm")
+                                    </div>
+                                }
+
+                                @foreach (AppointmentDTO appointment in dayAppointments)
+                                {
+                                    <div class="small border-start border-3 ps-1 mb-1 @(appointment.Status == AppointmentStatus.Cancelled ? "text-decoration-line-through text-muted" : "")">
+                                        <strong>@appointment.StartsAt.ToString("HH:mm")</strong> @appointment.PatientName<br />
+                                        <span class="badge @appointment.Status.GetBadgeClass()">@appointment.Status.GetDisplayName()</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            @* Bloques de disponibilidad *@
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="m-0 font-weight-bold text-primary">Disponibilidad horaria</h3>
+                    </div>
+                    <div class="card-body mt-3">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Desde</th>
+                                    <th>Hasta</th>
+                                    @if (canManage)
+                                    {
+                                        <th style="width: 60px;"></th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Availabilities.Any())
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No hay bloques de disponibilidad configurados.</td>
+                                    </tr>
+                                }
+
+                                @foreach (AvailabilityDTO item in Model.Availabilities)
+                                {
+                                    <tr>
+                                        <td>@item.DayOfWeek.ToSpanish()</td>
+                                        <td>@item.StartTime.ToString("HH:mm")</td>
+                                        <td>@item.EndTime.ToString("HH:mm")</td>
+                                        @if (canManage)
+                                        {
+                                            <td>
+                                                <form asp-action="DeleteAvailability" asp-route-id="@item.Id" method="POST" style="display: contents;">
+                                                    <button type="submit" class="btn btn-sm btn-danger btnDelete">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (canManage)
+                        {
+                            <h6 class="fw-bold mt-4">Agregar bloque</h6>
+
+                            <form asp-action="CreateAvailability" method="POST" class="row g-2 align-items-end">
+
+                                <input type="hidden" asp-for="NewAvailability.DoctorProfileId" />
+
+                                <div class="col-md-4">
+                                    <label asp-for="NewAvailability.DayOfWeek" class="form-label small"></label>
+                                    <select asp-for="NewAvailability.DayOfWeek" class="form-select">
+                                        @foreach (DayOfWeek day in DateExtensions.WeekDays)
+                                        {
+                                            <option value="@day">@day.ToSpanish()</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label asp-for="NewAvailability.StartTime" class="form-label small"></label>
+                                    <input asp-for="NewAvailability.StartTime" type="time" asp-format="{0:HH:mm}" class="form-control" />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label asp-for="NewAvailability.EndTime" class="form-label small"></label>
+                                    <input asp-for="NewAvailability.EndTime" type="time" asp-format="{0:HH:mm}" class="form-control" />
+                                </div>
+
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg"></i></button>
+                                </div>
+
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Horario de la clínica (referencia) *@
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Horario de atención de la clínica</h5>
+                        <ul class="list-group list-group-flush">
+                            @foreach (BusinessHourDTO item in Model.BusinessHours)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>@item.DayOfWeek.ToSpanish()</span>
+                                    @if (item.IsOpen)
+                                    {
+                                        <span>@item.OpenTime.ToString("HH:mm") - @item.CloseTime.ToString("HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Cerrado</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+
+</section>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function() {
+
+            $('.btnDelete').click(function(event) {
+
+                event.preventDefault();
+
+                Swal.fire({
+                    icon: 'question',
+                    title: '¿Desea eliminar el bloque de disponibilidad?',
+                    text: "Las citas ya agendadas no se modifican.",
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        const form = $(this).closest('form');
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+    </script>
+
+}

@@ -15,5 +15,11 @@ namespace Psicologia.Web.Services.Abstractions
         public bool AccountUserIsAuthenticated();
         public Task<bool> AccountUserIsAuthorizedAsync(string code);
         public Task<bool> AccountUserIsSuperAdminAsync();
+
+        // Usuario de la sesión actual (null si no hay sesión o si la cuenta está inactiva)
+        public Task<User?> GetAccountUserAsync();
+
+        // Perfil de doctor del usuario de la sesión (null si no es doctor)
+        public Task<DoctorProfile?> GetAccountDoctorProfileAsync();
     }
 }
