@@ -51,6 +51,22 @@ namespace Psicologia.Web
             builder.Services.AddScoped<IUsersService, UsersService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
 
+            // Administración del Sistema
+            builder.Services.AddScoped<IAuditService, AuditService>();
+            builder.Services.AddScoped<IStaffService, StaffService>();
+            builder.Services.AddScoped<IClinicalServicesService, ClinicalServicesService>();
+
+            // Panel de Dirección
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
+            builder.Services.AddScoped<IApprovalsService, ApprovalsService>();
+            builder.Services.AddScoped<IPoliciesService, PoliciesService>();
+
+            // Atención Clínica
+            builder.Services.AddScoped<IAgendaService, AgendaService>();
+            builder.Services.AddScoped<IAppointmentsService, AppointmentsService>();
+            builder.Services.AddScoped<IClinicalRecordsService, ClinicalRecordsService>();
+            builder.Services.AddScoped<IDoctorPanelService, DoctorPanelService>();
+
             builder.Services.AddTransient<SeedDb>();
 
             // Helpers

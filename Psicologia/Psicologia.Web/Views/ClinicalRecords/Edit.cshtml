@@ -1,0 +1,104 @@
+@model UpdateClinicalRecordDTO
+
+@{
+    ViewData["Title"] = "Editar Historia Clínica";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Historias Clínicas</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">@Model.PatientName</a></li>
+            <li class="breadcrumb-item active">Editar</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="POST" class="row g-3 mt-2">
+
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="PatientName" />
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input value="@Model.PatientName" class="form-control" readonly />
+                        <label asp-for="PatientName"></label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input asp-for="DocumentNumber" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.DocumentNumber)" />
+                        <label asp-for="DocumentNumber"></label>
+                        <span asp-validation-for="DocumentNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input asp-for="BirthDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.BirthDate)" />
+                        <label asp-for="BirthDate"></label>
+                        <span asp-validation-for="BirthDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Phone)" />
+                        <label asp-for="Phone"></label>
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="ConsultationReason" class="form-control" style="height: 110px" placeholder="@Html.DisplayNameFor(dto => dto.ConsultationReason)"></textarea>
+                        <label asp-for="ConsultationReason"></label>
+                        <span asp-validation-for="ConsultationReason" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="Background" class="form-control" style="height: 140px" placeholder="@Html.DisplayNameFor(dto => dto.Background)"></textarea>
+                        <label asp-for="Background"></label>
+                        <span asp-validation-for="Background" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Volver</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

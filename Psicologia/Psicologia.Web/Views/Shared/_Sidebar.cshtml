@@ -4,6 +4,28 @@
     string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
 
     string CssClass(string name) => controller.Equals(name, StringComparison.OrdinalIgnoreCase) ? "" : "collapsed";
+
+    // Panel de Dirección
+    bool canDashboard = await _accountService.AccountUserIsAuthorizedAsync("dashboard.show");
+    bool canApprovals = await _accountService.AccountUserIsAuthorizedAsync("approvals.show");
+    bool canPolicies = await _accountService.AccountUserIsAuthorizedAsync("policies.show");
+    bool showDirection = canDashboard || canApprovals || canPolicies;
+
+    // Atención Clínica
+    bool canAgenda = await _accountService.AccountUserIsAuthorizedAsync("agenda.show");
+    bool canAppointments = await _accountService.AccountUserIsAuthorizedAsync("appointments.show");
+    bool canClinicalRecords = await _accountService.AccountUserIsAuthorizedAsync("clinicalrecords.show");
+    bool canDoctorPanel = await _accountService.AccountUserIsAuthorizedAsync("doctorpanel.show");
+    bool showClinical = canAgenda || canAppointments || canClinicalRecords || canDoctorPanel;
+
+    // Administración del Sistema
+    bool canStaff = await _accountService.AccountUserIsAuthorizedAsync("staff.show");
+    bool canServices = await _accountService.AccountUserIsAuthorizedAsync("services.show");
+    bool canSpecialties = await _accountService.AccountUserIsAuthorizedAsync("specialties.show");
+    bool canUsers = await _accountService.AccountUserIsAuthorizedAsync("users.show");
+    bool canRoles = await _accountService.AccountUserIsAuthorizedAsync("roles.show");
+    bool canAudit = await _accountService.AccountUserIsAuthorizedAsync("audit.show");
+    bool showAdministration = canStaff || canServices || canSpecialties || canUsers || canRoles || canAudit;
 }
 
 <aside id="sidebar" class="sidebar">
@@ -13,38 +35,153 @@
         <li class="nav-item">
             <a class="nav-link @CssClass("Home")" asp-controller="Home" asp-action="Index">
                 <i class="bi bi-grid"></i>
-                <span>Dashboard</span>
+                <span>Inicio</span>
             </a>
         </li>
 
-        @if (await _accountService.AccountUserIsAuthorizedAsync("specialties.show"))
+        @if (showDirection)
         {
-            <li class="nav-item">
-                <a class="nav-link @CssClass("Specialties")" asp-controller="Specialties" asp-action="Index">
-                    <i class="bi bi-journal-medical"></i>
-                    <span>Especialidades</span>
-                </a>
-            </li>
+            <li class="nav-heading">Panel de Dirección</li>
+
+            if (canDashboard)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Dashboard")" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <span>Indicadores</span>
+                    </a>
+                </li>
+            }
+
+            if (canApprovals)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Approvals")" asp-controller="Approvals" asp-action="Index">
+                        <i class="bi bi-patch-check"></i>
+                        <span>Aprobaciones</span>
+                    </a>
+                </li>
+            }
+
+            if (canPolicies)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Policies")" asp-controller="Policies" asp-action="Index">
+                        <i class="bi bi-sliders"></i>
+                        <span>Políticas</span>
+                    </a>
+                </li>
+            }
         }
 
-        @if (await _accountService.AccountUserIsAuthorizedAsync("users.show"))
+        @if (showClinical)
         {
-            <li class="nav-item">
-                <a class="nav-link @CssClass("Users")" asp-controller="Users" asp-action="Index">
-                    <i class="bi bi-people"></i>
-                    <span>Usuarios</span>
-                </a>
-            </li>
+            <li class="nav-heading">Atención Clínica</li>
+
+            if (canAgenda)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Agenda")" asp-controller="Agenda" asp-action="Index">
+                        <i class="bi bi-calendar-week"></i>
+                        <span>Agenda</span>
+                    </a>
+                </li>
+            }
+
+            if (canAppointments)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Appointments")" asp-controller="Appointments" asp-action="Index">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Citas</span>
+                    </a>
+                </li>
+            }
+
+            if (canClinicalRecords)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("ClinicalRecords")" asp-controller="ClinicalRecords" asp-action="Index">
+                        <i class="bi bi-journal-text"></i>
+                        <span>Historias Clínicas</span>
+                    </a>
+                </li>
+            }
+
+            if (canDoctorPanel)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("DoctorPanel")" asp-controller="DoctorPanel" asp-action="Index">
+                        <i class="bi bi-person-vcard"></i>
+                        <span>Panel del Doctor</span>
+                    </a>
+                </li>
+            }
         }
 
-        @if (await _accountService.AccountUserIsAuthorizedAsync("roles.show"))
+        @if (showAdministration)
         {
-            <li class="nav-item">
-                <a class="nav-link @CssClass("Roles")" asp-controller="Roles" asp-action="Index">
-                    <i class="bi bi-person-badge"></i>
-                    <span>Roles</span>
-                </a>
-            </li>
+            <li class="nav-heading">Administración del Sistema</li>
+
+            if (canStaff)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Staff")" asp-controller="Staff" asp-action="Index">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Personal</span>
+                    </a>
+                </li>
+            }
+
+            if (canServices)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("ClinicalServices")" asp-controller="ClinicalServices" asp-action="Index">
+                        <i class="bi bi-clipboard2-pulse"></i>
+                        <span>Servicios</span>
+                    </a>
+                </li>
+            }
+
+            if (canSpecialties)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Specialties")" asp-controller="Specialties" asp-action="Index">
+                        <i class="bi bi-journal-medical"></i>
+                        <span>Especialidades</span>
+                    </a>
+                </li>
+            }
+
+            if (canUsers)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Users")" asp-controller="Users" asp-action="Index">
+                        <i class="bi bi-people"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+            }
+
+            if (canRoles)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("Roles")" asp-controller="Roles" asp-action="Index">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Roles</span>
+                    </a>
+                </li>
+            }
+
+            if (canAudit)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @CssClass("AuditLogs")" asp-controller="AuditLogs" asp-action="Index">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Auditoría</span>
+                    </a>
+                </li>
+            }
         }
 
     </ul>

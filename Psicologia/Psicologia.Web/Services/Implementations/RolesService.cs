@@ -15,11 +15,13 @@ namespace Psicologia.Web.Services.Implementations
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IAuditService _auditService;
 
-        public RolesService(DataContext context, IMapper mapper) : base(context, mapper)
+        public RolesService(DataContext context, IMapper mapper, IAuditService auditService) : base(context, mapper)
         {
             _context = context;
             _mapper = mapper;
+            _auditService = auditService;
         }
 
         public async Task<Response<CreateRoleDTO>> CreateAsync(CreateRoleDTO dto)
@@ -66,6 +68,8 @@ namespace Psicologia.Web.Services.Implementations
 
                     await transaction.CommitAsync();
 
+                    await _auditService.LogAsync(AuditActions.CREATE, "Rol", role.Id.ToString(), $"Se creó el rol '{role.Name}' con {permissionIds.Count} permiso(s)");
+
                     return Response<CreateRoleDTO>.Success(dto, "Rol creado con éxito");
                 }
                 catch (Exception ex)
@@ -91,7 +95,14 @@ namespace Psicologia.Web.Services.Implementations
                 return Response.Failure("No se puede eliminar el rol porque hay usuarios asociados a él.");
             }
 
-            return await DeleteAsync<Role>(id);
+            Response response = await DeleteAsync<Role>(id);
+
+            if (response.IsSuccess)
+            {
+                await _auditService.LogAsync(AuditActions.DELETE, "Rol", id.ToString(), $"Se eliminó el rol '{role?.Name}'");
+            }
+
+            return response;
         }
 
         public async Task<Response<RoleDTO>> GetOneAsync(Guid id)
@@ -215,6 +226,8 @@ namespace Psicologia.Web.Services.Implementations
                 }
 
                 await _context.SaveChangesAsync();
+
+                await _auditService.LogAsync(AuditActions.UPDATE, "Rol", role.Id.ToString(), $"Se actualizó el rol '{role.Name}' y sus permisos ({permissionIds.Count})");
 
                 RoleDTO dtoResponse = new RoleDTO
                 {

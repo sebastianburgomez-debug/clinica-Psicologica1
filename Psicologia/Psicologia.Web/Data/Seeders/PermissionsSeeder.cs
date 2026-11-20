@@ -14,7 +14,19 @@ namespace Psicologia.Web.Data.Seeders
 
         public async Task SeedAsync()
         {
-            List<Permission> permissions = [ ..Specialties(), ..Users(), ..Roles() ];
+            List<Permission> permissions =
+            [
+                ..Specialties(), ..Users(), ..Roles(),
+
+                // Panel de Dirección
+                ..Dashboard(), ..Approvals(), ..Policies(),
+
+                // Atención Clínica
+                ..Agenda(), ..Appointments(), ..ClinicalRecords(), ..DoctorPanel(),
+
+                // Administración del Sistema
+                ..Staff(), ..ClinicalServices(), ..Audit()
+            ];
 
             foreach (Permission permission in permissions)
             {
@@ -59,6 +71,99 @@ namespace Psicologia.Web.Data.Seeders
                 new Permission { Id = Guid.NewGuid(), Code = "roles.create", Name = "Crear Roles", Module = "Roles"},
                 new Permission { Id = Guid.NewGuid(), Code = "roles.update", Name = "Editar Roles", Module = "Roles"},
                 new Permission { Id = Guid.NewGuid(), Code = "roles.delete", Name = "Eliminar Roles", Module = "Roles"},
+            };
+        }
+
+        private List<Permission> Dashboard()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "dashboard.show", Name = "Ver Panel de Indicadores", Module = "Panel de Dirección"},
+            };
+        }
+
+        private List<Permission> Approvals()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "approvals.show", Name = "Ver Solicitudes de Aprobación", Module = "Aprobaciones"},
+                new Permission { Id = Guid.NewGuid(), Code = "approvals.manage", Name = "Aprobar / Rechazar Solicitudes", Module = "Aprobaciones"},
+            };
+        }
+
+        private List<Permission> Policies()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "policies.show", Name = "Ver Políticas", Module = "Políticas"},
+                new Permission { Id = Guid.NewGuid(), Code = "policies.update", Name = "Editar Horarios y Tarifas de Referencia", Module = "Políticas"},
+            };
+        }
+
+        private List<Permission> Agenda()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "agenda.show", Name = "Ver Agenda", Module = "Agenda"},
+                new Permission { Id = Guid.NewGuid(), Code = "agenda.manage", Name = "Gestionar Disponibilidad", Module = "Agenda"},
+            };
+        }
+
+        private List<Permission> Appointments()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "appointments.show", Name = "Ver Citas", Module = "Citas"},
+                new Permission { Id = Guid.NewGuid(), Code = "appointments.create", Name = "Agendar Citas", Module = "Citas"},
+                new Permission { Id = Guid.NewGuid(), Code = "appointments.update", Name = "Cambiar Estado de Citas", Module = "Citas"},
+            };
+        }
+
+        private List<Permission> ClinicalRecords()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "clinicalrecords.show", Name = "Ver Historias Clínicas", Module = "Historia Clínica"},
+                new Permission { Id = Guid.NewGuid(), Code = "clinicalrecords.create", Name = "Abrir Historias Clínicas", Module = "Historia Clínica"},
+                new Permission { Id = Guid.NewGuid(), Code = "clinicalrecords.update", Name = "Registrar Notas y Diagnósticos", Module = "Historia Clínica"},
+            };
+        }
+
+        private List<Permission> DoctorPanel()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "doctorpanel.show", Name = "Ver Panel del Doctor", Module = "Panel del Doctor"},
+            };
+        }
+
+        private List<Permission> Staff()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "staff.show", Name = "Ver Personal", Module = "Personal"},
+                new Permission { Id = Guid.NewGuid(), Code = "staff.create", Name = "Crear Doctores y Secretarias", Module = "Personal"},
+                new Permission { Id = Guid.NewGuid(), Code = "staff.update", Name = "Editar Personal", Module = "Personal"},
+                new Permission { Id = Guid.NewGuid(), Code = "staff.toggle", Name = "Activar / Desactivar Personal", Module = "Personal"},
+            };
+        }
+
+        private List<Permission> ClinicalServices()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "services.show", Name = "Ver Servicios", Module = "Servicios"},
+                new Permission { Id = Guid.NewGuid(), Code = "services.create", Name = "Crear Servicios", Module = "Servicios"},
+                new Permission { Id = Guid.NewGuid(), Code = "services.update", Name = "Editar Servicios", Module = "Servicios"},
+                new Permission { Id = Guid.NewGuid(), Code = "services.delete", Name = "Eliminar Servicios", Module = "Servicios"},
+            };
+        }
+
+        private List<Permission> Audit()
+        {
+            return new List<Permission>
+            {
+                new Permission { Id = Guid.NewGuid(), Code = "audit.show", Name = "Ver Auditoría", Module = "Auditoría"},
             };
         }
     }

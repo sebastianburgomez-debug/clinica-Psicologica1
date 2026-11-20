@@ -11,5 +11,9 @@ namespace Psicologia.Web.DTOs.Specialty
         [MaxLength(100, ErrorMessage = "El campo {0} debe tener como máximo {1} caracteres.")]
         [Display(Name = "Especialidad")]
         public string Name { get; set; } = string.Empty;
+
+        [MaxLength(256, ErrorMessage = "El campo {0} debe tener como máximo {1} caracteres.")]
+        [Display(Name = "Descripción")]
+        public string? Description { get; set; }
     }
 }

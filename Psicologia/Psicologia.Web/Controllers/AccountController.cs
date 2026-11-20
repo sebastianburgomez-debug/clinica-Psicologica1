@@ -54,8 +54,11 @@ namespace Psicologia.Web.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                ModelState.AddModelError(string.Empty, "Email o contraseña incorrectos");
-                _notyfService.Error("Email o contraseña incorrectos");
+                // Message trae un texto específico cuando la cuenta está desactivada
+                string errorMessage = result.Message ?? "Email o contraseña incorrectos";
+
+                ModelState.AddModelError(string.Empty, errorMessage);
+                _notyfService.Error(errorMessage);
             }
             else
             {
