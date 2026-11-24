@@ -1,0 +1,94 @@
+@model SaveClinicalNoteDTO
+
+@{
+    bool isNew = Model.Id is null || Model.Id == Guid.Empty;
+
+    ViewData["Title"] = isNew ? "Nueva Nota Clínica" : "Editar Nota Clínica";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Historias Clínicas</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.ClinicalRecordId">@Model.PatientName</a></li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Note" method="POST" class="row g-3 mt-2">
+
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ClinicalRecordId" />
+                <input type="hidden" asp-for="PatientName" />
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input value="@Model.PatientName" class="form-control" readonly />
+                        <label asp-for="PatientName"></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="Type" asp-items="Html.GetEnumSelectList<ClinicalNoteType>()" class="form-select"></select>
+                        <label asp-for="Type"></label>
+                        <span asp-validation-for="Type" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="SessionDate" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.SessionDate)" />
+                        <label asp-for="SessionDate"></label>
+                        <span asp-validation-for="SessionDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="Content" class="form-control" style="height: 260px" placeholder="@Html.DisplayNameFor(dto => dto.Content)"></textarea>
+                        <label asp-for="Content"></label>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-shield-lock"></i> Información confidencial. Solo el doctor autor puede modificar esta nota y cada cambio queda registrado en la auditoría.
+                    </small>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                    <a asp-action="Details" asp-route-id="@Model.ClinicalRecordId" class="btn btn-secondary">Volver</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

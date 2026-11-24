@@ -1,0 +1,283 @@
+@model DashboardDTO
+
+@{
+    ViewData["Title"] = "Panel de Indicadores";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Panel de Dirección</li>
+            <li class="breadcrumb-item active">Indicadores</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    @* Filtro de periodo *@
+    <div class="card">
+        <div class="card-body pt-3">
+            <form asp-action="Index" method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label for="from" class="form-label small text-muted">Desde</label>
+                    <input type="date" id="from" name="from" class="form-control" value="@Model.From.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="to" class="form-label small text-muted">Hasta</label>
+                    <input type="date" id="to" name="to" class="form-control" value="@Model.To.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-auto">
+                    <button class="btn btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Mes actual</a>
+                </div>
+                <div class="col-md text-md-end small text-muted">
+                    <i class="bi bi-info-circle"></i> Información meramente informativa
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-xxl-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Citas <span>| Hoy</span></h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-calendar-day"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@Model.AppointmentsToday</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xxl-3 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Citas <span>| Periodo</span></h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-calendar-range"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@Model.AppointmentsInRange</h6>
+                            <span class="text-success small pt-1 fw-bold">@Model.AttendedInRange</span>
+                            <span class="text-muted small pt-2 ps-1">atendidas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xxl-3 col-md-6">
+            <div class="card info-card customers-card">
+                <div class="card-body">
+                    <h5 class="card-title">Ocupación <span>| Periodo</span></h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@Model.OccupancyPercent.ToString("0.#")%</h6>
+                            <span class="text-muted small pt-2">@(Model.BookedMinutes / 60) h de @(Model.AvailableMinutes / 60) h disponibles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xxl-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Solicitudes <span>| Pendientes</span></h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-patch-question"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@(Model.PendingDoctors + Model.PendingSpecialties)</h6>
+                            <span class="text-muted small pt-2">@Model.PendingDoctors doctor(es), @Model.PendingSpecialties especialidad(es)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        @* Citas por día *@
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Citas por día <span>| @Model.From.ToString("dd/MM/yyyy") - @Model.To.ToString("dd/MM/yyyy")</span></h5>
+                    <canvas id="dailyChart" style="max-height: 320px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        @* Citas por estado *@
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Citas por estado</h5>
+                    <canvas id="statusChart" style="max-height: 320px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        @* Indicadores generales *@
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Indicadores generales</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-person-vcard me-2"></i>Doctores activos</span><strong>@Model.ActiveDoctors</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-person-workspace me-2"></i>Secretarias activas</span><strong>@Model.ActiveSecretaries</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-people me-2"></i>Pacientes activos</span><strong>@Model.ActivePatients</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-journal-text me-2"></i>Historias clínicas</span><strong>@Model.ClinicalRecords</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-clipboard2-pulse me-2"></i>Servicios activos</span><strong>@Model.ActiveServices</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-x-circle me-2"></i>Cancelaciones (periodo)</span><strong>@Model.CancelledInRange</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-person-x me-2"></i>Inasistencias (periodo)</span><strong>@Model.NoShowInRange</strong></li>
+                        <li class="list-group-item d-flex justify-content-between"><span><i class="bi bi-star me-2"></i>Satisfacción promedio (periodo)</span><strong>@(Model.ReviewsInRange == 0 ? "Sin reseñas" : Model.AverageRating.ToString("0.0") + " / 5 (" + Model.ReviewsInRange + ")")</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        @* Citas por especialidad *@
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Citas por especialidad</h5>
+                    @if (!Model.AppointmentsBySpecialty.Any())
+                    {
+                        <p class="text-muted">No hay citas en el periodo seleccionado.</p>
+                    }
+                    else
+                    {
+                        <canvas id="specialtyChart" style="max-height: 280px;"></canvas>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* Ocupación por doctor *@
+    <div class="card">
+        <div class="card-header">
+            <h3 class="m-0 font-weight-bold text-primary">Ocupación por doctor</h3>
+        </div>
+        <div class="card-body mt-3">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Especialidad</th>
+                        <th class="text-center">Citas</th>
+                        <th class="text-center">Atendidas</th>
+                        <th class="text-center">Horas agendadas / disponibles</th>
+                        <th style="width: 220px;">Ocupación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.DoctorsOccupancy.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No hay doctores aprobados y activos.</td>
+                        </tr>
+                    }
+
+                    @foreach (DoctorOccupancyDTO item in Model.DoctorsOccupancy)
+                    {
+                        decimal width = Math.Min(item.OccupancyPercent, 100);
+
+                        <tr>
+                            <td>@item.DoctorName</td>
+                            <td>@item.SpecialtyName</td>
+                            <td class="text-center">@item.Appointments</td>
+                            <td class="text-center">@item.Attended</td>
+                            <td class="text-center">@(item.BookedMinutes / 60) h / @(item.AvailableMinutes / 60) h</td>
+                            <td>
+                                <div class="progress" role="progressbar" aria-valuenow="@width.ToString(System.Globalization.CultureInfo.InvariantCulture)" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar" style="width: @width.ToString(System.Globalization.CultureInfo.InvariantCulture)%">@item.OccupancyPercent.ToString("0.#")%</div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script src="~/assets/vendor/chart.js/chart.umd.js"></script>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const daily = @Json.Serialize(Model.DailyAppointments);
+            const bySpecialty = @Json.Serialize(Model.AppointmentsBySpecialty);
+
+            new Chart(document.getElementById('dailyChart'), {
+                type: 'bar',
+                data: {
+                    labels: daily.map(d => d.label),
+                    datasets: [{ label: 'Citas', data: daily.map(d => d.value), backgroundColor: '#4154f1' }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Programadas', 'Atendidas', 'Canceladas', 'No asistió'],
+                    datasets: [{
+                        data: [@Model.ScheduledInRange, @Model.AttendedInRange, @Model.CancelledInRange, @Model.NoShowInRange],
+                        backgroundColor: ['#4154f1', '#2eca6a', '#adb5bd', '#ff771d']
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const specialtyCanvas = document.getElementById('specialtyChart');
+
+            if (specialtyCanvas) {
+                new Chart(specialtyCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: bySpecialty.map(s => s.label),
+                        datasets: [{ label: 'Citas', data: bySpecialty.map(s => s.value), backgroundColor: '#2eca6a' }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
+                });
+            }
+        });
+
+    </script>
+
+}

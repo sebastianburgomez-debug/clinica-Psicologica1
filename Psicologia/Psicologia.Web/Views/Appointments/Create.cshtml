@@ -1,0 +1,112 @@
+@model CreateAppointmentDTO
+
+@{
+    ViewData["Title"] = "Agendar Cita";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Citas</a></li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <p class="small text-muted mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                La cita debe quedar dentro de la disponibilidad del doctor. La hora de fin se calcula con la duración del servicio.
+            </p>
+
+            <form asp-action="Create" method="POST" class="row g-3 mt-2">
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="DoctorProfileId" asp-items="Model.Doctors" class="form-select">
+                            <option value="">-- Seleccione un doctor --</option>
+                        </select>
+                        <label asp-for="DoctorProfileId"></label>
+                        <span asp-validation-for="DoctorProfileId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                            <option value="">-- Seleccione un paciente --</option>
+                        </select>
+                        <label asp-for="PatientId"></label>
+                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="ClinicalServiceId" asp-items="Model.Services" class="form-select">
+                            <option value="">-- Seleccione un servicio --</option>
+                        </select>
+                        <label asp-for="ClinicalServiceId"></label>
+                        <span asp-validation-for="ClinicalServiceId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input asp-for="Date" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Date)" />
+                        <label asp-for="Date"></label>
+                        <span asp-validation-for="Date" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input asp-for="StartTime" type="time" asp-format="{0:HH:mm}" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.StartTime)" />
+                        <label asp-for="StartTime"></label>
+                        <span asp-validation-for="StartTime" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="Notes" class="form-control" style="height: 90px" placeholder="@Html.DisplayNameFor(dto => dto.Notes)"></textarea>
+                        <label asp-for="Notes"></label>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

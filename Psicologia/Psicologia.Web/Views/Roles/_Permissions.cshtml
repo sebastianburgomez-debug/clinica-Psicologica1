@@ -1,0 +1,38 @@
+@model List<PermissionsForRoleDTO>
+
+<div class="card shadow mb-4">
+
+    <div class="card-body">
+
+        <h5 class="card-title text-primary">Permisos</h5>
+
+        <div class="row">
+
+            @foreach (var module in Model.GroupBy(p => p.Module))
+            {
+                <div class="col-md-3 mt-3">
+
+                    <h6 class="fw-bold">@module.Key</h6>
+
+                    @foreach (PermissionsForRoleDTO permission in module)
+                    {
+                        <div class="form-check form-switch">
+
+                            <input class="form-check-input permission"
+                                   type="checkbox"
+                                   data-permission-id="@permission.Id"
+                                   id="permission_@permission.Id"
+                                   @(permission.Selected ? "checked" : "") />
+
+                            <label class="form-check-label" for="permission_@permission.Id"> @permission.Name </label>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+</div>

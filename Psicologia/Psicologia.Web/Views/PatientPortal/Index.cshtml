@@ -1,0 +1,114 @@
+@model List<PatientAppointmentDTO>
+@{
+    ViewData["Title"] = "Mis Citas";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Portal del Paciente</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">Historial de citas</h3>
+                <div class="col-md-1">
+                    <a asp-action="Book" class="btn btn-primary" title="Solicitar una cita"><i class="bi bi-plus-circle"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body mt-3">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Doctor</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th style="width: 200px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Aún no tiene citas. Solicite la primera con el botón +.</td>
+                        </tr>
+                    }
+
+                    @foreach (PatientAppointmentDTO item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @item.StartsAt.ToString("dd/MM/yyyy")<br />
+                                <small class="text-muted">@item.StartsAt.ToString("HH:mm") - @item.EndsAt.ToString("HH:mm")</small>
+                            </td>
+                            <td>@item.DoctorName</td>
+                            <td>@item.ServiceName</td>
+                            <td><span class="badge @item.Status.GetBadgeClass()">@item.Status.GetDisplayName()</span></td>
+                            <td>
+                                @if (item.CanReschedule)
+                                {
+                                    <a asp-action="Reschedule" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="Reprogramar">
+                                        <i class="bi bi-calendar2-week"></i>
+                                    </a>
+                                }
+
+                                @if (item.CanCancel)
+                                {
+                                    <form asp-action="Cancel" method="POST" style="display: contents;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button class="btn btn-sm btn-secondary btnCancel" title="Cancelar cita">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                @if (item.CanReview)
+                                {
+                                    <a asp-controller="Reviews" asp-action="Create" asp-route-appointmentId="@item.Id" class="btn btn-sm btn-warning" title="Calificar sesión">
+                                        <i class="bi bi-star"></i>
+                                    </a>
+                                }
+
+                                @if (item.HasReview)
+                                {
+                                    <span class="text-muted small"><i class="bi bi-star-fill text-warning"></i> Calificada</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.btnCancel').click(function(event) {
+                event.preventDefault();
+                Swal.fire({
+                    icon: 'question',
+                    title: '¿Cancelar la cita?',
+                    text: "Este cambio no se puede revertir.",
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, cancelar',
+                    cancelButtonText: 'Volver'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $(this).closest('form').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

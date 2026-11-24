@@ -1,0 +1,46 @@
+@* Carga las horas libres del doctor cuando cambia el doctor, el servicio o la fecha.
+   Requiere los ids: DoctorProfileId, ClinicalServiceId, Date y StartTime (un <select>). *@
+<script>
+    $(document).ready(function () {
+        const $doctor = $('#DoctorProfileId');
+        const $service = $('#ClinicalServiceId');
+        const $date = $('#Date');
+        const $time = $('#StartTime');
+        const selected = $time.data('selected');
+
+        function loadSlots() {
+            const doctor = $doctor.val();
+            const service = $service.val();
+            const date = $date.val();
+
+            $time.empty();
+
+            if (!doctor || !service || !date) {
+                $time.append('<option value="">-- Complete doctor, servicio y fecha --</option>');
+                return;
+            }
+
+            $.getJSON('@Url.Action("Slots", "PatientPortal")', { doctorId: doctor, serviceId: service, date: date })
+                .done(function (slots) {
+                    if (!slots.length) {
+                        $time.append('<option value="">No hay horarios libres ese día</option>');
+                        return;
+                    }
+
+                    $time.append('<option value="">-- Seleccione una hora --</option>');
+                    slots.forEach(function (slot) {
+                        $time.append($('<option>').val(slot).text(slot).prop('selected', slot === selected));
+                    });
+                })
+                .fail(function () {
+                    $time.append('<option value="">No fue posible consultar los horarios</option>');
+                });
+        }
+
+        $doctor.on('change', loadSlots);
+        $service.on('change', loadSlots);
+        $date.on('change', loadSlots);
+
+        loadSlots();
+    });
+</script>

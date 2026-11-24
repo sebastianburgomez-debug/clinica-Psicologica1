@@ -1,0 +1,124 @@
+@model PaginationResponse<ClinicalRecordDTO>
+@inject IAccountService _accountService
+
+@{
+    ViewData["Title"] = "Historias Clínicas";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Atención Clínica</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+                @if (await _accountService.AccountUserIsAuthorizedAsync("clinicalrecords.create"))
+                {
+                    <div class="col-md-1">
+                        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i></a>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="card-body mt-3">
+
+            <form asp-action="Index" class="navbar-search" method="GET">
+
+                <input type="hidden" name="Page" value="1" />
+
+                <div class="row mt-3">
+
+                    <div class="col-md-auto">
+                        <select asp-for="RecordsPerPage" class="form-select bg-light border-0 small">
+                            <option value="5" selected="@(Model.RecordsPerPage == 5)">5</option>
+                            <option value="10" selected="@(Model.RecordsPerPage == 10)">10</option>
+                            <option value="15" selected="@(Model.RecordsPerPage == 15)">15</option>
+                            <option value="30" selected="@(Model.RecordsPerPage == 30)">30</option>
+                            <option value="50" selected="@(Model.RecordsPerPage == 50)">50</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-10">
+                        <div class="input-group mb-3">
+                            <input type="text"
+                                   class="form-control bg-light border-0 small"
+                                   placeholder="Buscar por paciente, correo o documento..."
+                                   aria-label="search"
+                                   asp-for="Filter" />
+
+                            <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+
+            <table class="table table-bordered align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Documento</th>
+                        <th>Motivo de consulta</th>
+                        <th class="text-center">Notas</th>
+                        <th>Última sesión</th>
+                        <th style="width: 60px;"></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Model.List.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No hay registros para mostrar.</td>
+                        </tr>
+                    }
+
+                    @foreach (ClinicalRecordDTO item in Model.List)
+                    {
+                        string reason = item.ConsultationReason.Length > 80 ? item.ConsultationReason[..80] + "..." : item.ConsultationReason;
+
+                        <tr>
+                            <td>
+                                @item.PatientName<br />
+                                <small class="text-muted">@item.PatientEmail</small>
+                            </td>
+                            <td>@item.DocumentNumber</td>
+                            <td>@reason</td>
+                            <td class="text-center">@item.NotesCount</td>
+                            <td>@(item.LastSessionDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@item.Id" title="Ver historia">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+            @await Html.PartialAsync("_PaginationComponent", Model)
+
+        </div>
+    </div>
+
+</section>

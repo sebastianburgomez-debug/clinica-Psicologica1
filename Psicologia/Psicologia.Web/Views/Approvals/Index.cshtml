@@ -1,0 +1,269 @@
+@model ApprovalsDTO
+@inject IAccountService _accountService
+
+@{
+    ViewData["Title"] = "Aprobaciones";
+
+    bool canManage = await _accountService.AccountUserIsAuthorizedAsync("approvals.manage");
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item">Panel de Dirección</li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    @* Doctores pendientes *@
+    <div class="card">
+
+        <div class="card-header">
+            <div class="row">
+                <h3 class="m-0 font-weight-bold text-primary col-md-10">
+                    Doctores pendientes de aprobación
+                    <span class="badge bg-warning text-dark ms-2">@Model.PendingDoctors.Count</span>
+                </h3>
+            </div>
+        </div>
+
+        <div class="card-body mt-3">
+
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Especialidad</th>
+                        <th>Tarjeta profesional</th>
+                        <th>Solicitado</th>
+                        @if (canManage)
+                        {
+                            <th style="width: 360px;">Revisión</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.PendingDoctors.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No hay doctores pendientes de aprobación.</td>
+                        </tr>
+                    }
+
+                    @foreach (DoctorApprovalDTO item in Model.PendingDoctors)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Name</strong><br />
+                                <small class="text-muted">@item.Email</small>
+                                @if (!item.UserIsActive)
+                                {
+                                    <span class="badge bg-secondary ms-1">Cuenta inactiva</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(item.Biography))
+                                {
+                                    <div class="small text-muted mt-1">@item.Biography</div>
+                                }
+                            </td>
+                            <td>
+                                @item.SpecialtyName
+                                @if (item.SpecialtyStatus != ApprovalStatus.Approved)
+                                {
+                                    <span class="badge @item.SpecialtyStatus.GetBadgeClass() ms-1">Especialidad @item.SpecialtyStatus.GetDisplayName().ToLower()</span>
+                                }
+                            </td>
+                            <td>@item.ProfessionalLicense</td>
+                            <td>
+                                <small>@item.RequestedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small><br />
+                                <small class="text-muted">@item.RequestedBy</small>
+                            </td>
+                            @if (canManage)
+                            {
+                                <td>
+                                    <form asp-action="ReviewDoctor" method="POST" class="review-form">
+                                        <input type="hidden" name="Id" value="@item.DoctorProfileId" />
+                                        <input type="hidden" name="Approve" value="true" />
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" name="Notes" maxlength="512" class="form-control" placeholder="Observaciones (obligatorias al rechazar)" />
+                                            <button type="button" class="btn btn-success btnReview" data-approve="true" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                                            <button type="button" class="btn btn-danger btnReview" data-approve="false" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                    </form>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    @* Especialidades pendientes *@
+    <div class="card">
+
+        <div class="card-header">
+            <div class="row">
+                <h3 class="m-0 font-weight-bold text-primary col-md-10">
+                    Especialidades pendientes de aprobación
+                    <span class="badge bg-warning text-dark ms-2">@Model.PendingSpecialties.Count</span>
+                </h3>
+            </div>
+        </div>
+
+        <div class="card-body mt-3">
+
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Especialidad</th>
+                        <th>Descripción</th>
+                        <th>Solicitado</th>
+                        @if (canManage)
+                        {
+                            <th style="width: 360px;">Revisión</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.PendingSpecialties.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No hay especialidades pendientes de aprobación.</td>
+                        </tr>
+                    }
+
+                    @foreach (SpecialtyApprovalDTO item in Model.PendingSpecialties)
+                    {
+                        <tr>
+                            <td><strong>@item.Name</strong></td>
+                            <td>@item.Description</td>
+                            <td>
+                                <small>@item.RequestedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small><br />
+                                <small class="text-muted">@item.RequestedBy</small>
+                            </td>
+                            @if (canManage)
+                            {
+                                <td>
+                                    <form asp-action="ReviewSpecialty" method="POST" class="review-form">
+                                        <input type="hidden" name="Id" value="@item.Id" />
+                                        <input type="hidden" name="Approve" value="true" />
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" name="Notes" maxlength="512" class="form-control" placeholder="Observaciones (obligatorias al rechazar)" />
+                                            <button type="button" class="btn btn-success btnReview" data-approve="true" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                                            <button type="button" class="btn btn-danger btnReview" data-approve="false" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                                        </div>
+                                    </form>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    @* Historial *@
+    <div class="row">
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Últimas revisiones de doctores</h5>
+                    <ul class="list-group list-group-flush">
+                        @if (!Model.ReviewedDoctors.Any())
+                        {
+                            <li class="list-group-item text-muted">Sin revisiones registradas.</li>
+                        }
+                        @foreach (DoctorApprovalDTO item in Model.ReviewedDoctors)
+                        {
+                            <li class="list-group-item">
+                                <span class="badge @item.Status.GetBadgeClass() me-1">@item.Status.GetDisplayName()</span>
+                                <strong>@item.Name</strong> <small class="text-muted">(@item.SpecialtyName)</small><br />
+                                <small class="text-muted">@item.ReviewedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") · @item.ReviewedBy</small>
+                                @if (!string.IsNullOrWhiteSpace(item.ReviewNotes))
+                                {
+                                    <div class="small fst-italic">"@item.ReviewNotes"</div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Últimas revisiones de especialidades</h5>
+                    <ul class="list-group list-group-flush">
+                        @if (!Model.ReviewedSpecialties.Any())
+                        {
+                            <li class="list-group-item text-muted">Sin revisiones registradas.</li>
+                        }
+                        @foreach (SpecialtyApprovalDTO item in Model.ReviewedSpecialties)
+                        {
+                            <li class="list-group-item">
+                                <span class="badge @item.Status.GetBadgeClass() me-1">@item.Status.GetDisplayName()</span>
+                                <strong>@item.Name</strong><br />
+                                <small class="text-muted">@item.ReviewedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") · @item.ReviewedBy</small>
+                                @if (!string.IsNullOrWhiteSpace(item.ReviewNotes))
+                                {
+                                    <div class="small fst-italic">"@item.ReviewNotes"</div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function() {
+
+            $('.btnReview').click(function(event) {
+
+                event.preventDefault();
+
+                const form = $(this).closest('form');
+                const approve = $(this).data('approve') === true;
+                const notes = form.find('input[name="Notes"]').val().trim();
+
+                if (!approve && notes.length === 0) {
+                    Swal.fire({ icon: 'warning', title: 'Indique el motivo del rechazo en las observaciones' });
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'question',
+                    title: approve ? '¿Desea aprobar la solicitud?' : '¿Desea rechazar la solicitud?',
+                    showCancelButton: true,
+                    confirmButtonText: approve ? 'Sí, aprobar' : 'Sí, rechazar',
+                    cancelButtonText: 'Cancelar'
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        form.find('input[name="Approve"]').val(approve ? 'true' : 'false');
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+    </script>
+
+}

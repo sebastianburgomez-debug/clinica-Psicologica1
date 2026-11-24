@@ -1,0 +1,205 @@
+@model ClinicalRecordDTO
+
+@{
+    ViewData["Title"] = "Historia Clínica";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Historias Clínicas</a></li>
+            <li class="breadcrumb-item active">@Model.PatientName</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    @* Datos generales *@
+    <div class="card">
+
+        <div class="card-header">
+            <div class="row">
+                <h3 class="m-0 font-weight-bold text-primary col-md-10">
+                    <i class="bi bi-person"></i> @Model.PatientName
+                </h3>
+                <div class="col-md-2 text-md-end">
+                    @if (Model.CanEditRecord)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm" title="Editar datos generales">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">Volver</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body mt-3">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="small text-muted">Correo</div>
+                    <div>@Model.PatientEmail</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="small text-muted">Documento</div>
+                    <div>@(Model.DocumentNumber ?? "-")</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="small text-muted">Fecha de nacimiento</div>
+                    <div>@(Model.BirthDate?.ToString("dd/MM/yyyy") ?? "-")</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="small text-muted">Teléfono</div>
+                    <div>@(Model.Phone ?? "-")</div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="small text-muted">Motivo de consulta</div>
+                    <p style="white-space: pre-line;">@Model.ConsultationReason</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Antecedentes</div>
+                    <p style="white-space: pre-line;">@(Model.Background ?? "-")</p>
+                </div>
+            </div>
+
+            <div class="small text-muted">
+                Abierta el @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy") por @Model.CreatedBy
+                @if (Model.UpdatedAt is not null)
+                {
+                    <span>· Actualizada el @Model.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        @* Notas de sesión y evolución *@
+        <div class="col-lg-8">
+            <div class="card">
+
+                <div class="card-header">
+                    <div class="row">
+                        <h3 class="m-0 font-weight-bold text-primary col-md-9">Notas de sesión y evolución</h3>
+                        @if (Model.CanWriteNotes)
+                        {
+                            <div class="col-md-3 text-md-end">
+                                <a asp-action="Note" asp-route-recordId="@Model.Id" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle"></i> Nueva nota
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-body mt-3">
+
+                    @if (!Model.Notes.Any())
+                    {
+                        <p class="text-muted text-center">No hay notas registradas.</p>
+                    }
+
+                    @foreach (ClinicalNoteDTO note in Model.Notes)
+                    {
+                        <div class="border rounded p-3 mb-3 @(note.Type == ClinicalNoteType.Evolution ? "border-info" : "")">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span class="badge @(note.Type == ClinicalNoteType.Evolution ? "bg-info" : "bg-primary")">@note.Type.GetDisplayName()</span>
+                                    <strong class="ms-1">@note.SessionDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                                    <small class="text-muted ms-1">· @note.DoctorName</small>
+                                </div>
+                                @if (note.CanEdit)
+                                {
+                                    <a asp-action="Note" asp-route-recordId="@Model.Id" asp-route-id="@note.Id" class="btn btn-warning btn-sm" title="Editar nota">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                }
+                            </div>
+                            <p class="mt-2 mb-1" style="white-space: pre-line;">@note.Content</p>
+                            @if (note.UpdatedAt is not null)
+                            {
+                                <small class="text-muted fst-italic">Editada el @note.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        @* Diagnósticos *@
+        <div class="col-lg-4">
+            <div class="card">
+
+                <div class="card-header">
+                    <div class="row">
+                        <h3 class="m-0 font-weight-bold text-primary col-9">Diagnósticos</h3>
+                        @if (Model.CanWriteNotes)
+                        {
+                            <div class="col-3 text-end">
+                                <a asp-action="AddDiagnosis" asp-route-recordId="@Model.Id" class="btn btn-primary btn-sm" title="Nuevo diagnóstico">
+                                    <i class="bi bi-plus-circle"></i>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-body mt-3">
+
+                    @if (!Model.Diagnoses.Any())
+                    {
+                        <p class="text-muted text-center">No hay diagnósticos registrados.</p>
+                    }
+
+                    @foreach (DiagnosisDTO diagnosis in Model.Diagnoses)
+                    {
+                        <div class="border rounded p-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <strong>
+                                    @if (!string.IsNullOrWhiteSpace(diagnosis.Code))
+                                    {
+                                        <span class="text-primary">[@diagnosis.Code]</span>
+                                    }
+                                    @diagnosis.Name
+                                </strong>
+                                <span class="badge @diagnosis.Status.GetBadgeClass() align-self-start">@diagnosis.Status.GetDisplayName()</span>
+                            </div>
+                            <small class="text-muted">@diagnosis.DiagnosedAt.ToString("dd/MM/yyyy") · @diagnosis.DoctorName</small>
+                            @if (!string.IsNullOrWhiteSpace(diagnosis.Observations))
+                            {
+                                <div class="small mt-1" style="white-space: pre-line;">@diagnosis.Observations</div>
+                            }
+
+                            @if (diagnosis.CanEdit)
+                            {
+                                <form asp-action="UpdateDiagnosisStatus" method="POST" class="mt-2 d-flex gap-1">
+                                    <input type="hidden" name="Id" value="@diagnosis.Id" />
+                                    <input type="hidden" name="ClinicalRecordId" value="@Model.Id" />
+                                    <select name="Status" class="form-select form-select-sm">
+                                        @foreach (DiagnosisStatus status in Enum.GetValues<DiagnosisStatus>())
+                                        {
+                                            <option value="@status" selected="@(status == diagnosis.Status)">@status.GetDisplayName()</option>
+                                        }
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-primary" title="Actualizar estado"><i class="bi bi-arrow-repeat"></i></button>
+                                </form>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>

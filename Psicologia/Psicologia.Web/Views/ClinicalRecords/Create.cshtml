@@ -1,0 +1,110 @@
+@model CreateClinicalRecordDTO
+
+@{
+    ViewData["Title"] = "Nueva Historia Clínica";
+}
+
+<div class="pagetitle">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Historias Clínicas</a></li>
+            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="row">
+
+                <h3 class="m-0 font-weight-bold text-primary col-md-11">@ViewData["Title"]</h3>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (Model.Patients is null || !Model.Patients.Any())
+            {
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-info-circle"></i> Todos los pacientes activos ya tienen historia clínica o no hay pacientes registrados.
+                </div>
+            }
+
+            <form asp-action="Create" method="POST" class="row g-3 mt-2">
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                            <option value="">-- Seleccione un paciente --</option>
+                        </select>
+                        <label asp-for="PatientId"></label>
+                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="DocumentNumber" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.DocumentNumber)" />
+                        <label asp-for="DocumentNumber"></label>
+                        <span asp-validation-for="DocumentNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="BirthDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.BirthDate)" />
+                        <label asp-for="BirthDate"></label>
+                        <span asp-validation-for="BirthDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="@Html.DisplayNameFor(dto => dto.Phone)" />
+                        <label asp-for="Phone"></label>
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="ConsultationReason" class="form-control" style="height: 110px" placeholder="@Html.DisplayNameFor(dto => dto.ConsultationReason)"></textarea>
+                        <label asp-for="ConsultationReason"></label>
+                        <span asp-validation-for="ConsultationReason" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <textarea asp-for="Background" class="form-control" style="height: 140px" placeholder="@Html.DisplayNameFor(dto => dto.Background)"></textarea>
+                        <label asp-for="Background"></label>
+                        <span asp-validation-for="Background" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
