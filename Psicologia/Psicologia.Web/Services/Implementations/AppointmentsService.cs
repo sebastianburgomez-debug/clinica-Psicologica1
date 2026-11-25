@@ -45,6 +45,15 @@ namespace Psicologia.Web.Services.Implementations
             {
                 query = query.Where(a => a.DoctorProfileId == ownProfile.Id);
             }
+            else
+            {
+                // Si es un paciente autenticado, solo ve sus propias citas
+                User? currentUser = await _accountService.GetAccountUserAsync();
+                if (currentUser is not null && currentUser.Role?.Name == Env.PATIENT_ROLE_NAME)
+                {
+                    query = query.Where(a => a.PatientId == currentUser.Id);
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(request.Filter))
             {
@@ -75,6 +84,14 @@ namespace Psicologia.Web.Services.Implementations
                 if (ownProfile is not null && ownProfile.Id != dto.DoctorProfileId)
                 {
                     return Response<AppointmentDTO>.Failure("Solo puede agendar citas en su propia agenda");
+                }
+
+                User? accountUser = await _accountService.GetAccountUserAsync();
+
+                // Si es un paciente quien agenda, la cita debe asignarse forzosamente a sí mismo
+                if (accountUser is not null && accountUser.Role?.Name == Env.PATIENT_ROLE_NAME)
+                {
+                    dto.PatientId = accountUser.Id;
                 }
 
                 DoctorProfile? doctor = await _context.DoctorProfiles.Include(d => d.User)
@@ -149,8 +166,6 @@ namespace Psicologia.Web.Services.Implementations
                     return Response<AppointmentDTO>.Failure("El paciente ya tiene una cita en ese horario");
                 }
 
-                User? accountUser = await _accountService.GetAccountUserAsync();
-
                 Appointment appointment = new Appointment
                 {
                     Id = Guid.NewGuid(),
@@ -208,6 +223,22 @@ namespace Psicologia.Web.Services.Implementations
                 if (ownProfile is not null && ownProfile.Id != appointment.DoctorProfileId)
                 {
                     return Response.Failure("Solo puede gestionar sus propias citas");
+                }
+
+                User? accountUser = await _accountService.GetAccountUserAsync();
+
+                // Un paciente solo puede cancelar su propia cita
+                if (accountUser is not null && accountUser.Role?.Name == Env.PATIENT_ROLE_NAME)
+                {
+                    if (appointment.PatientId != accountUser.Id)
+                    {
+                        return Response.Failure("Solo puede gestionar sus propias citas");
+                    }
+
+                    if (dto.Status != AppointmentStatus.Cancelled)
+                    {
+                        return Response.Failure("Como paciente solo puede cancelar su cita");
+                    }
                 }
 
                 if (appointment.Status != AppointmentStatus.Scheduled)
