@@ -1,7 +1,12 @@
 @model CreateAppointmentDTO
+@using Psicologia.Web.Data.Entities
+@inject IAccountService _accountService
 
 @{
     ViewData["Title"] = "Agendar Cita";
+
+    User? accountUser = await _accountService.GetAccountUserAsync();
+    bool isPatient = accountUser?.Role?.Name == Env.PATIENT_ROLE_NAME;
 }
 
 <div class="pagetitle">
@@ -48,15 +53,22 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
-                            <option value="">-- Seleccione un paciente --</option>
-                        </select>
-                        <label asp-for="PatientId"></label>
-                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                @if (!isPatient)
+                {
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                                <option value="">-- Seleccione un paciente --</option>
+                            </select>
+                            <label asp-for="PatientId"></label>
+                            <span asp-validation-for="PatientId" class="text-danger"></span>
+                        </div>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="PatientId" />
+                }
 
                 <div class="col-md-6">
                     <div class="form-floating">

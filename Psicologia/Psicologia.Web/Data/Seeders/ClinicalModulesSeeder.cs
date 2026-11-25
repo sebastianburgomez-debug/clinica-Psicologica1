@@ -29,6 +29,11 @@ namespace Psicologia.Web.Data.Seeders
             "appointments.show", "appointments.create", "appointments.update"
         ];
 
+        private static readonly string[] PATIENT_PERMISSIONS =
+        [
+            "appointments.show", "appointments.create", "appointments.update"
+        ];
+
         public ClinicalModulesSeeder(DataContext context, IUsersService usersService, IAccountService accountService)
         {
             _context = context;
@@ -42,6 +47,7 @@ namespace Psicologia.Web.Data.Seeders
             await ClinicalServicesAsync();
             await RolePermissionsAsync(Env.DOCTOR_ROLE_NAME, DOCTOR_PERMISSIONS);
             await RolePermissionsAsync(Env.SECRETARY_ROLE_NAME, SECRETARY_PERMISSIONS);
+            await RolePermissionsAsync(Env.PATIENT_ROLE_NAME, PATIENT_PERMISSIONS);
             await SecretaryUserAsync();
             await DoctorProfileAsync();
         }

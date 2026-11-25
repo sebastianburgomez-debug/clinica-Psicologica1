@@ -1,10 +1,13 @@
 @model PaginationResponse<AppointmentDTO>
+@using Psicologia.Web.Data.Entities
 @inject IAccountService _accountService
 
 @{
     ViewData["Title"] = "Citas";
 
     bool canUpdate = await _accountService.AccountUserIsAuthorizedAsync("appointments.update");
+    User? accountUser = await _accountService.GetAccountUserAsync();
+    bool isPatient = accountUser?.Role?.Name == Env.PATIENT_ROLE_NAME;
 }
 
 <div class="pagetitle">
@@ -121,7 +124,7 @@
                                 <td>
                                     @if (item.Status == AppointmentStatus.Scheduled)
                                     {
-                                        if (started)
+                                        if (started && !isPatient)
                                         {
                                             <form asp-action="ChangeStatus" method="POST" style="display: contents;">
                                                 <input type="hidden" name="Id" value="@item.Id" />

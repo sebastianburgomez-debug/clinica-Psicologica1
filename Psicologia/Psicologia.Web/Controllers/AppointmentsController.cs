@@ -49,10 +49,12 @@ namespace Psicologia.Web.Controllers
         public async Task<IActionResult> Create([FromQuery] Guid? doctorId)
         {
             DoctorProfile? ownProfile = await _accountService.GetAccountDoctorProfileAsync();
+            User? accountUser = await _accountService.GetAccountUserAsync();
 
             CreateAppointmentDTO dto = new CreateAppointmentDTO
             {
                 DoctorProfileId = ownProfile?.Id ?? doctorId,
+                PatientId = (accountUser?.Role?.Name == Env.PATIENT_ROLE_NAME) ? accountUser.Id : null,
                 Date = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
                 StartTime = new TimeOnly(8, 0)
             };
@@ -67,6 +69,13 @@ namespace Psicologia.Web.Controllers
         [CustomAuthorize(permissionCode: "appointments.create")]
         public async Task<IActionResult> Create([FromForm] CreateAppointmentDTO dto)
         {
+            User? accountUser = await _accountService.GetAccountUserAsync();
+            if (accountUser?.Role?.Name == Env.PATIENT_ROLE_NAME)
+            {
+                dto.PatientId = accountUser.Id;
+                ModelState.Remove(nameof(dto.PatientId));
+            }
+
             if (!ModelState.IsValid)
             {
                 _notyfService.Error("Debe ajustar los errores de validación");
